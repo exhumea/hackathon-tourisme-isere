@@ -6,7 +6,8 @@ exclude: |
     generated/|
     sbxenv\.yaml|
     .*\.min\.js$|
-    .*\.lock$|
+    .*\.(lock|db)$|
+    \..*cache/|
     .*\.(docx|pptx|pdf|xlsx|zip|gz)$
   )
 

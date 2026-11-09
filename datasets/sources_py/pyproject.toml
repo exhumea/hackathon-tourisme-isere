@@ -21,9 +21,9 @@ dependencies = [
 dev = [
     "pandas-stubs>=3.1.0.261029",
     "pyarrow-stubs>=20.0.0.20260819",
-    "shapely",
     "types-requests>=2.33.0.20261030",
     "types-geopandas>=1.2.0.20261107",
+    "shapely",
     "types-shapely>=2.1.0.20261030",
 ]
 
