@@ -1,12 +1,17 @@
 # Hackathon
 
-## Agentic setup with Docker sandboxes
+## Agentic setup with Docker sandboxes (humans-only)
 
-1. [Install `sbx`](https://docs.docker.com/ai/sandboxes/install/) and `sbx login`
+> [!IMPORTANT]
+> The agentic setup below is **humans only**: an agent must not run it, change it,
+> or any config file or script involved in this setup.
+> Only a human operator provisions sandboxes and authenticates accounts.
 
-2. Install some skills with [`npx skills`](https://www.skills.sh/) and `sbx skills import` them
+1. [Install `sbx`](https://docs.docker.com/ai/sandboxes/install/) and run `sbx login`
 
-3. Store your secrets (API keys for models providers) with
+2. Install some skills with [`npx skills`](https://www.skills.sh/) and import them with `sbx skills import`
+
+3. Store your secrets (API keys for model providers) with
 [`sbx secret set[-custom]`](https://docs.docker.com/ai/sandboxes/configuration/credentials/).
 Some nice providers are:
    - <https://lbrouter.com/#ref=GTXQQRLK> (nice free tier, per day)
@@ -19,8 +24,8 @@ Some nice providers are:
    - <https://freepi.ai/?ref=q5jyhxvg> (free tier, complex setup)
 
 4. [Authenticate with `gh` CLI](https://docs.github.com/github-cli/github-cli/quickstart)
-for your human and agentic accounts and `export GH_AGENT=<agent-username>` in your ~/.bashrc
-(nota: you MUST have a SSH key for both
+for your human and agentic accounts, and `export GH_AGENT=<agent-username>` in your `~/.bashrc`
+(note: you MUST have an SSH key for both
 [authentication](https://docs.github.com/authentication/connecting-to-github-with-ssh)
 and [signing](https://docs.github.com/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key), for both accounts)
 
@@ -28,5 +33,6 @@ and [signing](https://docs.github.com/authentication/managing-commit-signature-v
 
 6. Launch new OpenCode sandbox(es) with `./new_opencode_sandbox.sh`
 
-7. Pair with your sandbox with your OpenCode {[desktop](https://opencode.ai/desktop), [mobile](https://getopencode.app/), web} apps, and start new _sessions_ there
-**(beware to change working directory before starting _session_)**
+7. Pair your sandbox with your OpenCode {[desktop](https://opencode.ai/desktop), [mobile](https://getopencode.app/), web} apps **(beware pairing link is valid only once, run `./pair_opencode_sandbox.sh` to pair to another app)**
+
+8. Start new _sessions_ in your OpenCode app **(beware to change the working directory before starting a _session_)**
