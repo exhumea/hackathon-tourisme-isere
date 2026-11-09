@@ -57,6 +57,7 @@ make jscpd       # code dupliqué (jscpd)
 make licensecheck # licences des dépendances (licensecheck)
 make diff-cover  # couverture des lignes modifiées (diff-cover)
 make lychee      # liens morts (lychee)
+make shfmt       # formatage des scripts shell (shfmt)
 make format      # ruff check --fix + ruff format
 make hooks       # installe les hooks pre-commit
 ```
@@ -79,6 +80,7 @@ make hooks       # installe les hooks pre-commit
 - `yamllint` sur les fichiers YAML (configuration permissive) ;
 - `mdlint` sur les fichiers Markdown (configuration permissive) ;
 - `shellcheck` sur les scripts shell ;
+- `shfmt -d` sur les scripts shell (indentation **4 espaces**) ;
 - `lychee` sur les liens des fichiers Markdown.
 
 `diff-cover` compare à `origin/main` et son seuil est contrôlé par

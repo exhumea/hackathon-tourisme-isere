@@ -22,6 +22,7 @@ dev = [
     "pytest-randomly>=5.1.0",
     "ruff>=0.16",
     "shellcheck-py>=0.11",
+    "shfmt-py>=4.2.0",
     "validate-pyproject>=0.27",
     "yamllint>=1.37",
 ]

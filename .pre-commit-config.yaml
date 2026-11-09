@@ -84,6 +84,11 @@ repos:
         entry: uv run --no-sync --all-packages mypy
         language: system
         types: [python]
+      - id: shfmt
+        name: shfmt
+        entry: uv run --no-sync --all-packages shfmt -d -i 4 -kp -ci
+        language: system
+        types: [shell]
       - id: pytest
         name: pytest
         entry: uv run --no-sync --all-packages pytest

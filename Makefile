@@ -19,11 +19,11 @@ DIFF_COVER_BASE ?= origin/main
 DIFF_COVER_FAIL_UNDER ?= 0
 
 .PHONY: help setup check lint test format hooks pre-commit clean \
-	check-ruff check-mypy check-pytest check-yamllint check-markdown check-shell \
+	check-ruff check-mypy check-pytest check-yamllint check-markdown check-shell check-shfmt \
 	check-deptry check-import-linter check-complexipy check-actionlint \
 	check-validate-pyproject check-jscpd check-licensecheck check-diff-cover check-lychee \
 	mdlint deptry import-linter complexipy actionlint validate-pyproject jscpd \
-	licensecheck diff-cover lychee
+	licensecheck diff-cover lychee shfmt
 
 help: ## Affiche cette aide
 	@echo "Cibles disponibles :"
@@ -32,6 +32,7 @@ help: ## Affiche cette aide
 	@echo "  make lint         Lance les linters (sans les tests)"
 	@echo "  make test         Lance les tests unitaires"
 	@echo "  make mdlint       Lint des fichiers Markdown (mdlint)"
+	@echo "  make shfmt        Formatage des scripts shell (shfmt)"
 	@echo "  make deptry       Vérifie les dépendances déclarées (deptry)"
 	@echo "  make import-linter Vérifie les règles d'import (import-linter)"
 	@echo "  make complexipy   Complexité cognitive (complexipy)"
@@ -49,9 +50,9 @@ help: ## Affiche cette aide
 setup: ## Installe l'environnement Python
 	$(UV) sync --all-packages --all-groups
 
-check: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter check-complexipy check-actionlint check-validate-pyproject check-jscpd check-licensecheck check-pytest check-diff-cover check-lychee ## Tous les contrôles
+check: check-ruff check-mypy check-yamllint check-markdown check-shell check-shfmt check-deptry check-import-linter check-complexipy check-actionlint check-validate-pyproject check-jscpd check-licensecheck check-pytest check-diff-cover check-lychee ## Tous les contrôles
 
-lint: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter check-complexipy check-actionlint check-validate-pyproject check-jscpd check-licensecheck check-lychee ## Linters uniquement
+lint: check-ruff check-mypy check-yamllint check-markdown check-shell check-shfmt check-deptry check-import-linter check-complexipy check-actionlint check-validate-pyproject check-jscpd check-licensecheck check-lychee ## Linters uniquement
 
 check-ruff: ## Ruff (lint + format)
 	$(UV_RUN) ruff check .
@@ -70,6 +71,11 @@ mdlint: check-markdown ## Alias de check-markdown (mdlint)
 
 check-shell: ## Lint des scripts shell
 	$(UV_RUN) shellcheck $(SHELL_FILES)
+
+check-shfmt: ## Formatage des scripts shell
+	$(UV_RUN) shfmt -d -i 4 -kp -ci $(SHELL_FILES)
+
+shfmt: check-shfmt ## Alias de check-shfmt
 
 check-deptry: ## Vérifie les dépendances déclarées
 	cd datasets/sources_py && $(UV_RUN) deptry .
