@@ -1,1 +1,22 @@
-data/gtfs/*.zip
+# Données locales : jamais versionnées
+data/**
+!data/**/README.md
+!data/**/.gitkeep
+.env
+.env.*
+!.env.example
+onyxia-data/
+
+# Python / uv
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.complexipy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.lycheecache
+jscpd-report/

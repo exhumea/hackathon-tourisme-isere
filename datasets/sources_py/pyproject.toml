@@ -3,18 +3,17 @@ name = "hackathon-dge-gestion-des-flux"
 version = "0.1.0"
 description = "Scripts Python pour le hackathon DGE de gestion des flux touristiques"
 readme = "README.md"
-requires-python = ">=3.11"
+license = "MIT"
+requires-python = ">=3.12"
 dependencies = [
     "folium",
     "geopandas",
     "matplotlib",
     "numpy",
-    "openpyxl",
     "osmnx",
-    "pandas",
+    "pandas[excel]",
     "pyarrow",
     "requests",
-    "shapely",
     "urllib3",
 ]
 
@@ -22,42 +21,28 @@ dependencies = [
 dev = [
     "pandas-stubs>=3.1.0.261029",
     "pyarrow-stubs>=20.0.0.20260819",
-    "pyright>=1.1.414",
-    "pytest",
-    "ruff",
     "types-requests>=2.33.0.20261030",
+    "types-geopandas>=1.2.0.20261107",
+    "shapely",
+    "types-shapely>=2.1.0.20261030",
 ]
 
 [tool.uv]
 package = false
 
-[tool.pyright]
-include = ["src/**/*.py", "tests/**/*.py"]
-exclude = [".venv", "**/__pycache__"]
-typeCheckingMode = "strict"
-pythonVersion = "3.11"
-reportMissingTypeStubs = false
-# Les bibliothèques tierces (matplotlib, folium, geopandas...) exposent des
-# signatures avec **kwargs: Unknown que Pyright ne peut pas résoudre.
-reportUnknownMemberType = false
+[tool.deptry.per_rule_ignores]
+# openpyxl est chargé dynamiquement par pandas via engine="openpyxl".
+# DEP002 = ["openpyxl"]
 
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
+[tool.importlinter]
+root_packages = ["isere_tourism"]
 
-[tool.ruff]
-line-length = 100
-target-version = "py311"
+[tool.licensecheck]
+format = "simple"
+show_only_failing = true
+zero = true
 
-[tool.ruff.lint]
-select = [
-    "E",   # pycodestyle errors
-    "F",   # pyflakes
-    "I",   # isort
-    "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "SIM", # flake8-simplify
-]
-ignore = [
-    "E501", # lignes trop longues : gérées par le formateur
-]
+[[tool.importlinter.contracts]]
+name = "Les modules isere_tourism sont indépendants"
+type = "independence"
+modules = ["isere_tourism.*"]

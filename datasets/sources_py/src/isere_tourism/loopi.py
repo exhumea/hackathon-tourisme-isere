@@ -4,6 +4,7 @@
 
 import json
 import zipfile
+from pathlib import Path
 from typing import Any, cast
 
 import pandas as pd
@@ -34,7 +35,7 @@ def download_gtfs(url: str, token: str) -> None:
     response = requests.get(url, headers={"Authorization": f"Bearer {token}"}, timeout=120)
     response.raise_for_status()
 
-    with open(GTFS_ZIP_PATH, "wb") as file:
+    with Path(GTFS_ZIP_PATH).open("wb") as file:
         file.write(response.content)
 
     with zipfile.ZipFile(GTFS_ZIP_PATH) as archive:
@@ -86,7 +87,7 @@ def compute_recommended_route(
 
 def save_itinerary(itinerary: Any, path: str) -> None:
     """Save the computed itinerary as a JSON file."""
-    with open(path, "w", encoding="utf-8") as file:
+    with Path(path).open("w", encoding="utf-8") as file:
         json.dump(itinerary, file, ensure_ascii=False, indent=2)
 
 

@@ -3,8 +3,8 @@
 # See all available operations: https://biodiv-sports.fr/api/v2/#operations-tag-sensitivearea
 # ----------------------------------------------------------------------
 
-import os
 import tempfile
+from pathlib import Path
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -16,9 +16,7 @@ import requests
 
 SENSITIVE_AREAS_URL = "https://biodiv-sports.fr/api/v2/sensitivearea/"
 DEPARTMENTS_URL = (
-    "https://etalab-datasets.geo.data.gouv.fr/"
-    "contours-administratifs/2025/geojson/"
-    "departements-100m.geojson"
+    "https://etalab-datasets.geo.data.gouv.fr/contours-administratifs/2025/geojson/departements-100m.geojson"
 )
 DEPARTMENT_CODE = "38"  # Isère
 
@@ -51,7 +49,7 @@ def download_sensitive_areas(url: str) -> gpd.GeoDataFrame:
     try:
         areas: gpd.GeoDataFrame = gpd.read_file(temp_path)
     finally:
-        os.unlink(temp_path)
+        Path(temp_path).unlink()
     return areas
 
 

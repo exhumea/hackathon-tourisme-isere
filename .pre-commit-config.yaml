@@ -1,0 +1,118 @@
+default_install_hook_types: [pre-commit, pre-push]
+
+exclude: |
+  (?x)^(
+    vendor/|
+    generated/|
+    sbxenv\.yaml|
+    .*\.min\.js$|
+    .*\.(lock|db)$|
+    \..*cache/|
+    .*\.(docx|pptx|pdf|xlsx|zip|gz)$
+  )
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=1024']
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.4
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [-c, .yamllint.yaml]
+
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+    hooks:
+      - id: shellcheck
+
+  - repo: https://github.com/mprpic/mdlint
+    rev: 0.4.0
+    hooks:
+      - id: mdlint
+        args: [--config, .mdlint.toml]
+
+  - repo: local
+    hooks:
+      - id: complexipy
+        name: complexipy
+        entry: uv run --no-sync --all-packages complexipy
+        language: system
+        types: [python]
+      - id: actionlint
+        name: actionlint
+        entry: uv run --no-sync --all-packages actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+      - id: validate-pyproject
+        name: validate-pyproject
+        entry: uv run --no-sync --all-packages validate-pyproject
+        language: system
+        files: (^|/)pyproject\.toml$
+      - id: jscpd
+        name: jscpd
+        entry: uv run --no-sync --all-packages jscpd datasets/sources_py/src
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: deptry
+        name: deptry
+        entry: bash -c 'cd datasets/sources_py && uv run --no-sync --all-packages deptry .'
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: import-linter
+        name: import-linter
+        entry: bash -c 'cd datasets/sources_py && PYTHONPATH=src uv run --no-sync --all-packages lint-imports'
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: mypy
+        name: mypy
+        entry: uv run --no-sync --all-packages mypy
+        language: system
+        types: [python]
+      - id: shfmt
+        name: shfmt
+        entry: uv run --no-sync --all-packages shfmt -d -i 4 -kp -ci
+        language: system
+        types: [shell]
+      - id: pytest
+        name: pytest
+        entry: uv run --no-sync --all-packages pytest
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: diff-cover
+        name: diff-cover
+        entry: bash -c 'uv run --no-sync --all-packages diff-cover coverage.xml --compare-branch=origin/main --fail-under=0'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+      - id: lychee
+        name: lychee
+        entry: uv run --no-sync --all-packages lychee --no-progress
+        language: system
+        types: [markdown]
+        stages: [pre-push]
+      - id: licensecheck
+        name: licensecheck
+        entry: bash -c 'cd datasets/sources_py && uv run --no-sync --all-packages licensecheck'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

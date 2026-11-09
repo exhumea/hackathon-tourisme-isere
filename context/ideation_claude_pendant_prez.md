@@ -4,7 +4,7 @@
 
 - **Flux Vision Tourisme** : la source de référence d'Isère Attractivité (nuitées par commune et par jour, avec l'origine des visiteurs).
 - Guidelines Alpine Space pour les gestionnaires d'aires protégées et de destinations (protocole d'analyse de l'impact des activités de nature sur la biodiversité) : https://www.alpine-space.eu/wp-content/uploads/2026/11/LAN_O1.1.pdf
-- Cour des comptes (février 2024), « Les stations de montagne face au changement climatique » (synthèse Vie publique) : https://www.conseil-cac.com/photos/vie-publique-fr-240213-stations-de-sports-d-hiver-_-une-activite---trop-axe--e-sur-le-ski-_-vie-publique-fr.pdf
+- Cour des comptes (février 2024), « Les stations de montagne face au changement climatique » (synthèse Vie publique) : https://www.ccomptes.fr/fr/publications/les-stations-de-montagne-face-au-changement-climatique
 - **Zuugle** : moteur de randonnées accessibles en transport en commun, avec horaires aller et retour (projet de la Convention alpine). Une référence directe pour l'idée « rando × horaires ».
 - **Murmuration** (https://murmuration.earth/fr/) : entreprise spécialisée surtourisme et surfréquentation, fournisseuse de l'outil de capacité de charge.
 - meduse.acri : à explorer.

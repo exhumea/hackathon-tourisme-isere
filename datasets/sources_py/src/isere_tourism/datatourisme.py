@@ -28,6 +28,7 @@ from urllib3.util.retry import Retry
 API_KEY = "Ma clé"  # Hackathon key, available in the Excel file
 
 BASE_URL = "https://api.datatourisme.fr/v1"
+HTTP_BAD_REQUEST = 400
 
 # ✏️ [2] DATA TYPE (endpoint) -------------------------------------------
 #   "catalog"               : all POIs (places, events, routes, products)
@@ -122,9 +123,7 @@ GEO_API_URL = "https://geo.api.gouv.fr"
 
 def normalize(text: object) -> str:
     """Return a lowercase, accent-free version of a string."""
-    return (
-        unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("ascii").lower()
-    )
+    return unicodedata.normalize("NFKD", str(text)).encode("ascii", "ignore").decode("ascii").lower()
 
 
 def call_geo_api(path: str, **params: Any) -> Any:
@@ -157,9 +156,7 @@ def municipality_insee_codes(names: Sequence[str]) -> list[str]:
             continue
 
         exact_matches = [
-            index
-            for index, municipality in enumerate(response)
-            if normalize(municipality["nom"]) == normalize(name)
+            index for index, municipality in enumerate(response) if normalize(municipality["nom"]) == normalize(name)
         ]
         choice = exact_matches[0] if exact_matches else 0
         print(f"Municipality '{name}' -> {response[choice]['nom']} ({response[choice]['code']})")
@@ -185,11 +182,7 @@ def epci_insee_codes(names: Sequence[str]) -> list[str]:
             )
             continue
 
-        partial_matches = [
-            index
-            for index, epci in enumerate(response)
-            if normalize(name) in normalize(epci["nom"])
-        ]
+        partial_matches = [index for index, epci in enumerate(response) if normalize(name) in normalize(epci["nom"])]
         choice = partial_matches[0] if partial_matches else 0
 
         other_candidates = ""
@@ -232,11 +225,7 @@ def build_final_filter() -> str:
         codes.extend(MUNICIPALITY_INSEE_CODES)
 
     codes = list(dict.fromkeys(codes))
-    if (
-        MUNICIPALITIES is not None
-        or INTERCOMMUNALITIES is not None
-        or MUNICIPALITY_INSEE_CODES is not None
-    ):
+    if MUNICIPALITIES is not None or INTERCOMMUNALITIES is not None or MUNICIPALITY_INSEE_CODES is not None:
         if not codes:
             raise ValueError("No municipality found for the requested names: import cancelled.")
         filters.append(f"{municipality_field}[in]={','.join(map(str, codes))}")
@@ -292,13 +281,13 @@ def build_session() -> requests.Session:
 
 def check_response(response: requests.Response) -> None:
     """Raise an HTTPError with the API detail when the response is an error."""
-    if response.status_code >= 400:
+    if response.status_code >= HTTP_BAD_REQUEST:
         try:
             body: Any = response.json()
             if isinstance(body, dict):
                 detail = " | ".join(str(value) for value in cast("dict[str, Any]", body).values())
             elif isinstance(body, list):
-                detail = " | ".join(str(value) for value in cast("list[Any]", body))
+                detail = " | ".join(str(value) for value in body)
             else:
                 detail = str(body)
         except Exception:
@@ -326,10 +315,7 @@ def fetch_pois(
 
         if page == 1:
             metadata: dict[str, Any] = body.get("meta", {})
-            print(
-                f"{metadata.get('total')} results in total, i.e. "
-                f"{metadata.get('total_pages')} pages of {PAGE_SIZE}."
-            )
+            print(f"{metadata.get('total')} results in total, i.e. {metadata.get('total_pages')} pages of {PAGE_SIZE}.")
             if metadata.get("total_pages") is not None and metadata["total_pages"] > MAX_PAGES:
                 print(f"Only the first {MAX_PAGES} pages will be downloaded (MAX_PAGES).")
 
@@ -361,13 +347,11 @@ def flatten_value(value: Any) -> str | None:
         return None
     if isinstance(value, dict):
         mapping = cast("dict[str, Any]", value)
-        if not mapping:
-            return None
-        key = DISPLAY_LANGUAGE if DISPLAY_LANGUAGE in mapping else next(iter(mapping))
-        return flatten_value(mapping[key])
+        key = DISPLAY_LANGUAGE if DISPLAY_LANGUAGE in mapping else next(iter(mapping), None)
+        return flatten_value(mapping[key]) if key is not None else None
     if isinstance(value, list):
-        items = cast("list[Any]", value)
-        if len(items) == 0:
+        items = value
+        if not items:
             return None
         if all(not isinstance(item, (list, dict)) for item in items):
             return " | ".join(str(item) for item in items)
@@ -382,7 +366,7 @@ def extract_value(poi: dict[str, Any], paths: str | Sequence[str]) -> str | None
         value: Any = poi
         for key in path.split("."):
             if isinstance(value, list):
-                items = cast("list[Any]", value)
+                items = value
                 value = items[0] if items else None
             value = cast("dict[str, Any]", value).get(key) if isinstance(value, dict) else None
             if value is None:
@@ -417,7 +401,7 @@ def plot_map(dataframe: pd.DataFrame) -> None:
         center = [46.5, 2.5]
 
     map_ = folium.Map(location=center, zoom_start=8)
-    cluster = MarkerCluster().add_to(map_)
+    cluster = MarkerCluster().add_to(map_)  # type: ignore[no-untyped-call]
 
     for _, row in geo_dataframe.iterrows():
         name = html.escape(str(row.get("name", "")))

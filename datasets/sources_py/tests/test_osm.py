@@ -5,7 +5,6 @@ These tests do not perform any network request.
 
 import geopandas as gpd
 import shapely.geometry as sg
-
 from isere_tourism.osm import get_layer
 
 

@@ -16,6 +16,7 @@ COVERED_AREA: dict[str, str] = {
 }
 
 DATASETS_API_URL = "https://transport.data.gouv.fr/api/datasets"
+HTTP_OK = 200
 OUTPUT_FILE = "catalogue_transports_isere.csv"
 
 # -----------------------------------------------------------------------------
@@ -62,7 +63,7 @@ def build_catalog(datasets: list[dict[str, Any]]) -> pd.DataFrame:
 def main() -> None:
     response = requests.get(DATASETS_API_URL, timeout=120)
     response.raise_for_status()
-    assert response.status_code == 200
+    assert response.status_code == HTTP_OK
 
     datasets: list[dict[str, Any]] = response.json()
     print(f"Total number of datasets: {len(datasets)}")

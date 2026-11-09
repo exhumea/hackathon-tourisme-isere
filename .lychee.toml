@@ -1,0 +1,7 @@
+# Vérification des liens : on tolère quelques retries pour les sites lents
+# et on accepte les codes 2xx ainsi que 429 (rate limiting).
+no_progress = true
+max_retries = 2
+retry_wait_time = 2
+timeout = 20
+accept = "200..=204, 429"

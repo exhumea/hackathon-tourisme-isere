@@ -1,0 +1,94 @@
+[project]
+name = "hackathon-dge-tooling"
+version = "0.1.0"
+description = "Outillage qualité du dépôt hackathon DGE gestion des flux touristiques"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    "actionlint-py>=1.7.12.25",
+    "complexipy>=8.3.0",
+    "deptry>=0.25.1",
+    "diff-cover>=11.0.1",
+    "import-linter>=2.16",
+    "jscpd>=5.4.3",
+    "licensecheck>=2026.0.8",
+    "lychee-bin>=0.24.2",
+    "mypy>=2",
+    "pre-commit>=4.3",
+    "mdlint>=0.4.0",
+    "pytest>=9",
+    "pytest-cov>=7",
+    "pytest-randomly>=5.1.0",
+    "ruff>=0.16",
+    "shellcheck-py>=0.11",
+    "shfmt-py>=4.2.0",
+    "validate-pyproject>=0.27",
+    "yamllint>=1.37",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["datasets/sources_py"]
+
+[tool.ruff]
+line-length = 120
+extend-exclude = [".venv", "sbx-kits-contrib", "datasets/sources_r", "data"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "C90",  # McCabe complexity
+    "PLR",  # Pylint refact
+    "RUF",
+    "PERF",
+    "FURB",
+    "PTH",
+    "FBT",
+    "PGH",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore import ordering in all __init__.py files
+"**/__init__.py" = ["F401"]
+
+# Ignore all security rules in tests
+"**/tests/**/test_*.py" = ["S101", "S105", "PLR2004"]
+
+# Ignore print statements in scripts
+"**/scripts/**/*.py" = ["T201"]
+
+# Ignore all rules starting with D in generated files
+"**/generated/**/*.py" = ["D"]
+
+[tool.mypy]
+strict = true
+exclude = ["^sbx-kits-contrib/", "^datasets/sources_r/", "^data/"]
+warn_unused_ignores = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["datasets/sources_py/tests"]
+pythonpath = ["datasets/sources_py/src"]
+norecursedirs = [
+    ".git",
+    ".venv",
+    "sbx-kits-contrib",
+    "datasets/sources_r",
+    "data",
+]
+addopts = "-ra --cov=isere_tourism --cov-report=term-missing --cov-report=xml"
+
+[tool.complexipy]
+paths = ["datasets/sources_py/src"]
+# Seuil volontairement au-dessus du maximum actuel (19) pour démarrer ;
+# à abaisser vers 15 après refactorisation de datatourisme.py.
+max-complexity-allowed = 20
+exclude = ["**/__pycache__/**"]

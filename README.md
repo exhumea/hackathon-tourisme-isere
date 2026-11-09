@@ -1,5 +1,19 @@
 # Hackathon
 
+## Qualité et développement
+
+Le dépôt utilise Python >= 3.12 et [`uv`](https://docs.astral.sh/uv/). Les
+contrôles de lint, de types et les tests se lancent depuis la racine :
+
+```bash
+make setup
+make check
+```
+
+Les conventions de code, les commandes détaillées et les règles sur les données
+privées sont dans [`AGENTS.md`](AGENTS.md). Les données du hackathon sont dans
+`../onyxia-data/` (lecture seule, jamais versionnées).
+
 ## Agentic setup with Docker sandboxes (humans-only)
 
 > [!IMPORTANT]
