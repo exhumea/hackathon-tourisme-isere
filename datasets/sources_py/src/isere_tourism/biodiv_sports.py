@@ -3,8 +3,8 @@
 # See all available operations: https://biodiv-sports.fr/api/v2/#operations-tag-sensitivearea
 # ----------------------------------------------------------------------
 
-import os
 import tempfile
+from pathlib import Path
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -49,7 +49,7 @@ def download_sensitive_areas(url: str) -> gpd.GeoDataFrame:
     try:
         areas: gpd.GeoDataFrame = gpd.read_file(temp_path)
     finally:
-        os.unlink(temp_path)
+        Path(temp_path).unlink()
     return areas
 
 

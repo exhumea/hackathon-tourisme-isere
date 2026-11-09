@@ -13,9 +13,17 @@ YAML_FILES := $(shell $(GIT_FILES) '*.yaml' '*.yml' | xargs -0 sh -c 'for f do [
 MARKDOWN_FILES := $(shell $(GIT_FILES) '*.md' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
 SHELL_FILES := $(shell $(GIT_FILES) '*.sh' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
 
+# diff-cover : branche de référence et seuil de couverture des lignes modifiées.
+# Le seuil est à 0 pour l'instant (baseline) ; le remonter progressivement.
+DIFF_COVER_BASE ?= origin/main
+DIFF_COVER_FAIL_UNDER ?= 0
+
 .PHONY: help setup check lint test format hooks pre-commit clean \
 	check-ruff check-mypy check-pytest check-yamllint check-markdown check-shell \
-	check-deptry check-import-linter mdlint deptry import-linter
+	check-deptry check-import-linter check-complexipy check-actionlint \
+	check-validate-pyproject check-jscpd check-licensecheck check-diff-cover check-lychee \
+	mdlint deptry import-linter complexipy actionlint validate-pyproject jscpd \
+	licensecheck diff-cover lychee
 
 help: ## Affiche cette aide
 	@echo "Cibles disponibles :"
@@ -26,6 +34,13 @@ help: ## Affiche cette aide
 	@echo "  make mdlint       Lint des fichiers Markdown (mdlint)"
 	@echo "  make deptry       Vérifie les dépendances déclarées (deptry)"
 	@echo "  make import-linter Vérifie les règles d'import (import-linter)"
+	@echo "  make complexipy   Complexité cognitive (complexipy)"
+	@echo "  make actionlint   Lint des workflows GitHub Actions"
+	@echo "  make validate-pyproject Valide les pyproject.toml"
+	@echo "  make jscpd        Détection de code dupliqué (jscpd)"
+	@echo "  make licensecheck Licences des dépendances (licensecheck)"
+	@echo "  make diff-cover   Couverture des lignes modifiées (diff-cover)"
+	@echo "  make lychee       Vérification des liens (lychee)"
 	@echo "  make format       Formate le code Python avec ruff"
 	@echo "  make hooks        Installe les hooks pre-commit"
 	@echo "  make pre-commit   Lance pre-commit sur tous les fichiers"
@@ -34,9 +49,9 @@ help: ## Affiche cette aide
 setup: ## Installe l'environnement Python
 	$(UV) sync --all-packages --all-groups
 
-check: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter check-pytest ## Tous les contrôles
+check: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter check-complexipy check-actionlint check-validate-pyproject check-jscpd check-licensecheck check-pytest check-diff-cover check-lychee ## Tous les contrôles
 
-lint: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter ## Linters uniquement
+lint: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter check-complexipy check-actionlint check-validate-pyproject check-jscpd check-licensecheck check-lychee ## Linters uniquement
 
 check-ruff: ## Ruff (lint + format)
 	$(UV_RUN) ruff check .
@@ -66,6 +81,42 @@ check-import-linter: ## Vérifie les règles d'import
 
 import-linter: check-import-linter ## Alias de check-import-linter
 
+check-complexipy: ## Complexité cognitive
+	$(UV_RUN) complexipy
+
+complexipy: check-complexipy ## Alias de check-complexipy
+
+check-actionlint: ## Lint des workflows GitHub Actions
+	$(UV_RUN) actionlint
+
+actionlint: check-actionlint ## Alias de check-actionlint
+
+check-validate-pyproject: ## Validation des fichiers pyproject.toml
+	$(UV_RUN) validate-pyproject pyproject.toml datasets/sources_py/pyproject.toml
+
+validate-pyproject: check-validate-pyproject ## Alias de check-validate-pyproject
+
+check-jscpd: ## Détection de code dupliqué
+	$(UV_RUN) jscpd datasets/sources_py/src
+
+jscpd: check-jscpd ## Alias de check-jscpd
+
+check-licensecheck: ## Compatibilité des licences des dépendances
+	cd datasets/sources_py && $(UV_RUN) licensecheck
+
+licensecheck: check-licensecheck ## Alias de check-licensecheck
+
+check-diff-cover: ## Couverture des lignes modifiées
+	@test -f coverage.xml || (echo "coverage.xml absent : lancez 'make test' d'abord" && exit 1)
+	$(UV_RUN) diff-cover coverage.xml --compare-branch=$(DIFF_COVER_BASE) --fail-under=$(DIFF_COVER_FAIL_UNDER)
+
+diff-cover: check-diff-cover ## Alias de check-diff-cover
+
+check-lychee: ## Vérification des liens
+	$(UV_RUN) lychee -vv --no-progress $(MARKDOWN_FILES)
+
+lychee: check-lychee ## Alias de check-lychee
+
 check-pytest: ## Tests unitaires
 	$(UV_RUN) pytest
 
@@ -82,5 +133,6 @@ pre-commit: ## Lance pre-commit sur tous les fichiers
 	$(UV_RUN) pre-commit run --all-files
 
 clean: ## Nettoie les caches et l'environnement virtuel
-	rm -rf .venv .mypy_cache .pytest_cache .ruff_cache
+	rm -rf .venv .mypy_cache .pytest_cache .ruff_cache .complexipy_cache
+	rm -rf coverage.xml .coverage htmlcov .lycheecache jscpd-report
 	find . -type d -name __pycache__ -not -path './.git/*' -not -path './sbx-kits-contrib/*' -prune -exec rm -rf {} +

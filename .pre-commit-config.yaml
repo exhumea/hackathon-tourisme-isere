@@ -4,6 +4,7 @@ exclude: |
   (?x)^(
     vendor/|
     generated/|
+    sbxenv\.yaml|
     .*\.min\.js$|
     .*\.lock$|
     .*\.(docx|pptx|pdf|xlsx|zip|gz)$
@@ -45,6 +46,27 @@ repos:
 
   - repo: local
     hooks:
+      - id: complexipy
+        name: complexipy
+        entry: uv run --no-sync --all-packages complexipy
+        language: system
+        types: [python]
+      - id: actionlint
+        name: actionlint
+        entry: uv run --no-sync --all-packages actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+      - id: validate-pyproject
+        name: validate-pyproject
+        entry: uv run --no-sync --all-packages validate-pyproject
+        language: system
+        files: (^|/)pyproject\.toml$
+      - id: jscpd
+        name: jscpd
+        entry: uv run --no-sync --all-packages jscpd datasets/sources_py/src
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: deptry
         name: deptry
         entry: bash -c 'cd datasets/sources_py && uv run --no-sync --all-packages deptry .'
@@ -67,4 +89,24 @@ repos:
         entry: uv run --no-sync --all-packages pytest
         language: system
         pass_filenames: false
+        stages: [pre-push]
+      - id: diff-cover
+        name: diff-cover
+        entry: bash -c 'uv run --no-sync --all-packages diff-cover coverage.xml --compare-branch=origin/main --fail-under=0'
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+      - id: lychee
+        name: lychee
+        entry: uv run --no-sync --all-packages lychee --no-progress
+        language: system
+        types: [markdown]
+        stages: [pre-push]
+      - id: licensecheck
+        name: licensecheck
+        entry: bash -c 'cd datasets/sources_py && uv run --no-sync --all-packages licensecheck'
+        language: system
+        pass_filenames: false
+        always_run: true
         stages: [pre-push]

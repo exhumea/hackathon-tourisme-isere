@@ -3,15 +3,15 @@ name = "hackathon-dge-gestion-des-flux"
 version = "0.1.0"
 description = "Scripts Python pour le hackathon DGE de gestion des flux touristiques"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "folium",
     "geopandas",
     "matplotlib",
     "numpy",
-    "openpyxl",
     "osmnx",
-    "pandas",
+    "pandas[excel]",
     "pyarrow",
     "requests",
     "urllib3",
@@ -32,10 +32,15 @@ package = false
 
 [tool.deptry.per_rule_ignores]
 # openpyxl est chargé dynamiquement par pandas via engine="openpyxl".
-DEP002 = ["openpyxl"]
+# DEP002 = ["openpyxl"]
 
 [tool.importlinter]
 root_packages = ["isere_tourism"]
+
+[tool.licensecheck]
+format = "simple"
+show_only_failing = true
+zero = true
 
 [[tool.importlinter.contracts]]
 name = "Les modules isere_tourism sont indépendants"

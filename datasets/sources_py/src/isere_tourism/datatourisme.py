@@ -28,6 +28,7 @@ from urllib3.util.retry import Retry
 API_KEY = "Ma clé"  # Hackathon key, available in the Excel file
 
 BASE_URL = "https://api.datatourisme.fr/v1"
+HTTP_BAD_REQUEST = 400
 
 # ✏️ [2] DATA TYPE (endpoint) -------------------------------------------
 #   "catalog"               : all POIs (places, events, routes, products)
@@ -280,7 +281,7 @@ def build_session() -> requests.Session:
 
 def check_response(response: requests.Response) -> None:
     """Raise an HTTPError with the API detail when the response is an error."""
-    if response.status_code >= 400:
+    if response.status_code >= HTTP_BAD_REQUEST:
         try:
             body: Any = response.json()
             if isinstance(body, dict):
@@ -346,13 +347,11 @@ def flatten_value(value: Any) -> str | None:
         return None
     if isinstance(value, dict):
         mapping = cast("dict[str, Any]", value)
-        if not mapping:
-            return None
-        key = DISPLAY_LANGUAGE if DISPLAY_LANGUAGE in mapping else next(iter(mapping))
-        return flatten_value(mapping[key])
+        key = DISPLAY_LANGUAGE if DISPLAY_LANGUAGE in mapping else next(iter(mapping), None)
+        return flatten_value(mapping[key]) if key is not None else None
     if isinstance(value, list):
         items = value
-        if len(items) == 0:
+        if not items:
             return None
         if all(not isinstance(item, (list, dict)) for item in items):
             return " | ".join(str(item) for item in items)

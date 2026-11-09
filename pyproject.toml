@@ -6,15 +6,23 @@ requires-python = ">=3.12"
 
 [dependency-groups]
 dev = [
+    "actionlint-py>=1.7.12.25",
+    "complexipy>=8.3.0",
     "deptry>=0.25.1",
+    "diff-cover>=11.0.1",
     "import-linter>=2.16",
+    "jscpd>=5.4.3",
+    "licensecheck>=2026.0.8",
+    "lychee-bin>=0.24.2",
     "mypy>=2",
     "pre-commit>=4.3",
     "mdlint>=0.4.0",
     "pytest>=9",
     "pytest-cov>=7",
+    "pytest-randomly>=5.1.0",
     "ruff>=0.16",
     "shellcheck-py>=0.11",
+    "validate-pyproject>=0.27",
     "yamllint>=1.37",
 ]
 
@@ -75,4 +83,11 @@ norecursedirs = [
     "datasets/sources_r",
     "data",
 ]
-addopts = "-ra"
+addopts = "-ra --cov=isere_tourism --cov-report=term-missing --cov-report=xml"
+
+[tool.complexipy]
+paths = ["datasets/sources_py/src"]
+# Seuil volontairement au-dessus du maximum actuel (19) pour démarrer ;
+# à abaisser vers 15 après refactorisation de datatourisme.py.
+max-complexity-allowed = 20
+exclude = ["**/__pycache__/**"]

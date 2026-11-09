@@ -45,11 +45,18 @@ outils de qualité, et `datasets/sources_py` est le projet Python applicatif.
 
 ```bash
 make setup       # uv sync --all-packages --all-groups
-make check       # tous les contrôles : lint, types, tests
-make lint        # linters uniquement (sans pytest)
-make test        # tests unitaires
+make check       # tous les contrôles : lint, types, tests, liens
+make lint        # linters uniquement (sans pytest ni diff-cover)
+make test        # tests unitaires + couverture
 make deptry      # dépendances déclarées (deptry)
 make import-linter # règles d'import (import-linter)
+make complexipy  # complexité cognitive (complexipy)
+make actionlint  # workflows GitHub Actions (actionlint)
+make validate-pyproject # validation des pyproject.toml
+make jscpd       # code dupliqué (jscpd)
+make licensecheck # licences des dépendances (licensecheck)
+make diff-cover  # couverture des lignes modifiées (diff-cover)
+make lychee      # liens morts (lychee)
 make format      # ruff check --fix + ruff format
 make hooks       # installe les hooks pre-commit
 ```
@@ -58,13 +65,24 @@ make hooks       # installe les hooks pre-commit
 
 - `ruff check` et `ruff format --check` (ligne max : **120** caractères) ;
 - `mypy` sur `datasets/sources_py/src` et `datasets/sources_py/tests` ;
+- `complexipy` (complexité cognitive, seuil **20** pour l'instant) ;
 - `deptry` sur `datasets/sources_py` (dépendances déclarées mais inutilisées,
   imports non déclarés) ;
 - `import-linter` sur le package `isere_tourism` (indépendance des modules) ;
-- `pytest` (tests unitaires, sans appel réseau) ;
+- `validate-pyproject` sur les deux `pyproject.toml` ;
+- `actionlint` sur `.github/workflows/` ;
+- `jscpd` sur `datasets/sources_py/src` (duplication maximale **5 %**) ;
+- `licensecheck` sur les dépendances d'exécution (licence de référence : MIT) ;
+- `pytest` avec couverture (`pytest-cov`, ordre aléatoire via
+  `pytest-randomly`) ;
+- `diff-cover` sur les lignes modifiées (`coverage.xml` produit par pytest) ;
 - `yamllint` sur les fichiers YAML (configuration permissive) ;
 - `mdlint` sur les fichiers Markdown (configuration permissive) ;
-- `shellcheck` sur les scripts shell.
+- `shellcheck` sur les scripts shell ;
+- `lychee` sur les liens des fichiers Markdown.
+
+`diff-cover` compare à `origin/main` et son seuil est contrôlé par
+`DIFF_COVER_FAIL_UNDER` (0 pour l'instant, à remonter progressivement).
 
 Les commandes Python passent par `uv run --all-packages ...`. Ne pas créer
 d'environnement virtuel manuellement : `uv` s'en charge.
@@ -132,7 +150,7 @@ le critère de vérification.
   ```
 
   Avant de recommander un skill, vérifie le nombre d'installations, la source et
-  la réputation du dépôt (voir <https://skills.sh/>). N'installe rien sans
+  la réputation du dépôt (voir <https://www.skills.sh/>). N'installe rien sans
   l'accord de l'utilisateur.
 
 Les skills sont normalement installés côté humain via `npx skills` puis importés
@@ -179,6 +197,13 @@ réservée aux humains (voir §10).
 - Toute dépendance importée doit être déclarée dans
   `datasets/sources_py/pyproject.toml` (`deptry` vérifie les imports non
   déclarés et les dépendances inutilisées).
+- La couverture est mesurée par `pytest-cov` (`coverage.xml`) et `diff-cover`
+  vérifie les lignes modifiées. Le seuil `DIFF_COVER_FAIL_UNDER` est à 0 pour
+  l'instant : le remonter progressivement.
+- La licence de référence de `licensecheck` est MIT. Si le dépôt passe à
+  Apache-2.0, mettre à jour `[tool.licensecheck]` et ajouter le fichier
+  `LICENSE` correspondant.
+- Éviter la duplication de code : `jscpd` échoue au-delà de 5 %.
 - Avant de proposer une PR : `make check` doit passer, et les hooks
   `pre-commit` doivent être installés avec `make hooks`.
 - La CI GitHub Actions (`.github/workflows/checks.yaml`) exécute `make check`
