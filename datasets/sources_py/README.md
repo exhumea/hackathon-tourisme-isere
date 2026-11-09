@@ -10,26 +10,24 @@ Pour déposer un code, chaque équipe peut se créer un canal au sein de ce rép
 
 La branche `python` contient la traduction des scripts R en scripts Python, avec la même organisation de fichiers et de sections, organisée dans le package `src/isere_tourism`.
 
-Installation des dépendances et de l'environnement virtuel :
+Installation des dépendances et de l'environnement virtuel, depuis la racine du dépôt :
 
 ```bash
-uv sync
+make setup
 ```
 
-Lancer le lint, le tri des imports, le formatage et la vérification des types :
+Lancer le lint, le tri des imports, le formatage, la vérification des types et les tests :
 
 ```bash
-uv run ruff check --fix .
-uv run ruff format .
-uv run pyright
+make check
 ```
 
-Le contrôle de types est configuré en mode strict pour Pyright dans `pyproject.toml`. Les modules du package peuvent ensuite être exécutés avec `uv run python -m isere_tourism.<module>`.
+Le contrôle de types est assuré par mypy, configuré dans le `pyproject.toml` racine. Les modules du package peuvent ensuite être exécutés avec `uv run --all-packages python -m isere_tourism.<module>`.
 
-Lancer les tests unitaires (aucun test n'appelle une API) :
+Lancer uniquement les tests unitaires (aucun test n'appelle une API) :
 
 ```bash
-uv run pytest
+make test
 ```
 
 ## Description des scripts

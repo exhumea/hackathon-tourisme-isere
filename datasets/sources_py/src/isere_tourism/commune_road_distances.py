@@ -6,7 +6,7 @@
 
 import os
 import time
-from typing import Any, cast
+from typing import Any, Final, cast
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ import requests
 AWS_PROFILE = "default"
 S3_REGION = "us-east-1"
 S3_ENDPOINT = "minio.lab.sspcloud.fr"
-S3_SCHEME = "https"
+S3_SCHEME: Final = "https"
 COMMUNES_S3_PATH = "maximehautin/Communes-d_Isere.csv"
 
 GEO_API_URL = "https://geo.api.gouv.fr"
@@ -87,8 +87,7 @@ def fetch_osrm_table(source: pd.DataFrame, destination: pd.DataFrame) -> list[li
         ignore_index=True,
     )
     coordinate_string = ";".join(
-        f"{lon},{lat}"
-        for lon, lat in coordinates[["lon", "lat"]].itertuples(index=False, name=None)
+        f"{lon},{lat}" for lon, lat in coordinates[["lon", "lat"]].itertuples(index=False, name=None)
     )
     sources = ";".join(str(index) for index in range(len(source)))
     destinations = ";".join(str(len(source) + index) for index in range(len(destination)))

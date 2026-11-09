@@ -1,0 +1,68 @@
+[project]
+name = "hackathon-dge-tooling"
+version = "0.1.0"
+description = "Outillage qualité du dépôt hackathon DGE gestion des flux touristiques"
+requires-python = ">=3.12"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18",
+    "pre-commit>=4.3",
+    "mdlint>=0.4.0",
+    "pytest>=8.4",
+    "ruff>=0.14",
+    "shellcheck-py>=0.11",
+    "yamllint>=1.37",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["datasets/sources_py"]
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["datasets/sources_py/src", "datasets/sources_py/tests"]
+extend-exclude = [".venv", "sbx-kits-contrib", "datasets/sources_r", "data"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+
+# ---------------------------------------------------------------------------
+# Mypy
+# ---------------------------------------------------------------------------
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "datasets/sources_py/src"
+files = ["datasets/sources_py/src", "datasets/sources_py/tests"]
+exclude = ["sbx-kits-contrib", "datasets/sources_r", "\\.venv"]
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["datasets/sources_py/tests"]
+pythonpath = ["datasets/sources_py/src"]
+addopts = "-ra"

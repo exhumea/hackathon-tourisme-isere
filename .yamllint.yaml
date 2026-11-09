@@ -1,0 +1,8 @@
+# Configuration volontairement permissive : on veut détecter les erreurs
+# structurelles, pas imposer un style de formatage.
+extends: relaxed
+
+rules:
+  line-length: disable
+  truthy:
+    check-keys: false

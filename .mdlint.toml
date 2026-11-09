@@ -1,0 +1,19 @@
+# Configuration mdlint volontairement permissive : on veut éviter les erreurs
+# de structure évidentes sans imposer un style de rédaction.
+ignore = [
+    "MD013", # longueur de ligne : gérée par ruff pour le code Python
+    "MD033", # HTML inline toléré dans la documentation
+    "MD034", # URLs nues tolérées dans la documentation
+    "MD036", # emphase utilisée comme titre
+    "MD041", # le premier titre n'est pas obligatoirement un h1
+    "MD060", # style des tableaux libre
+]
+
+[rules.MD024]
+siblings_only = true
+
+[rules.MD029]
+style = "one_or_ordered"
+
+[rules.MD051]
+ignore_case = true

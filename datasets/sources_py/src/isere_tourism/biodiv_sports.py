@@ -16,9 +16,7 @@ import requests
 
 SENSITIVE_AREAS_URL = "https://biodiv-sports.fr/api/v2/sensitivearea/"
 DEPARTMENTS_URL = (
-    "https://etalab-datasets.geo.data.gouv.fr/"
-    "contours-administratifs/2025/geojson/"
-    "departements-100m.geojson"
+    "https://etalab-datasets.geo.data.gouv.fr/contours-administratifs/2025/geojson/departements-100m.geojson"
 )
 DEPARTMENT_CODE = "38"  # Isère
 

@@ -107,6 +107,7 @@ Note : les données éco-compteurs sont en cours de finalisation par Nicolas Haf
 5. **Potentiel de mise à l'échelle et reproductibilité**.
 
 Conséquences pour le repo :
+
 - démo qui tourne de bout en bout (critère 1) ;
 - utiliser explicitement les jeux fournis (critère 3) ;
 - code générique, paramétré par département ou commune plutôt qu'en dur sur l'Isère (critère 5).
