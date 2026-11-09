@@ -14,7 +14,8 @@ MARKDOWN_FILES := $(shell $(GIT_FILES) '*.md' | xargs -0 sh -c 'for f do [ -f "$
 SHELL_FILES := $(shell $(GIT_FILES) '*.sh' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
 
 .PHONY: help setup check lint test format hooks pre-commit clean \
-	check-ruff check-mypy check-pytest check-yamllint check-markdown check-shell mdlint
+	check-ruff check-mypy check-pytest check-yamllint check-markdown check-shell \
+	check-deptry check-import-linter mdlint deptry import-linter
 
 help: ## Affiche cette aide
 	@echo "Cibles disponibles :"
@@ -23,6 +24,8 @@ help: ## Affiche cette aide
 	@echo "  make lint         Lance les linters (sans les tests)"
 	@echo "  make test         Lance les tests unitaires"
 	@echo "  make mdlint       Lint des fichiers Markdown (mdlint)"
+	@echo "  make deptry       Vérifie les dépendances déclarées (deptry)"
+	@echo "  make import-linter Vérifie les règles d'import (import-linter)"
 	@echo "  make format       Formate le code Python avec ruff"
 	@echo "  make hooks        Installe les hooks pre-commit"
 	@echo "  make pre-commit   Lance pre-commit sur tous les fichiers"
@@ -31,9 +34,9 @@ help: ## Affiche cette aide
 setup: ## Installe l'environnement Python
 	$(UV) sync --all-packages --all-groups
 
-check: check-ruff check-mypy check-yamllint check-markdown check-shell check-pytest ## Tous les contrôles
+check: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter check-pytest ## Tous les contrôles
 
-lint: check-ruff check-mypy check-yamllint check-markdown check-shell ## Linters uniquement
+lint: check-ruff check-mypy check-yamllint check-markdown check-shell check-deptry check-import-linter ## Linters uniquement
 
 check-ruff: ## Ruff (lint + format)
 	$(UV_RUN) ruff check .
@@ -52,6 +55,16 @@ mdlint: check-markdown ## Alias de check-markdown (mdlint)
 
 check-shell: ## Lint des scripts shell
 	$(UV_RUN) shellcheck $(SHELL_FILES)
+
+check-deptry: ## Vérifie les dépendances déclarées
+	cd datasets/sources_py && $(UV_RUN) deptry .
+
+deptry: check-deptry ## Alias de check-deptry
+
+check-import-linter: ## Vérifie les règles d'import
+	cd datasets/sources_py && PYTHONPATH=src $(UV_RUN) lint-imports
+
+import-linter: check-import-linter ## Alias de check-import-linter
 
 check-pytest: ## Tests unitaires
 	$(UV_RUN) pytest

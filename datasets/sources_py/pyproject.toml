@@ -14,7 +14,6 @@ dependencies = [
     "pandas",
     "pyarrow",
     "requests",
-    "shapely",
     "urllib3",
 ]
 
@@ -22,6 +21,7 @@ dependencies = [
 dev = [
     "pandas-stubs>=3.1.0.261029",
     "pyarrow-stubs>=20.0.0.20260819",
+    "shapely",
     "types-requests>=2.33.0.20261030",
     "types-geopandas>=1.2.0.20261107",
     "types-shapely>=2.1.0.20261030",
@@ -29,3 +29,15 @@ dev = [
 
 [tool.uv]
 package = false
+
+[tool.deptry.per_rule_ignores]
+# openpyxl est chargé dynamiquement par pandas via engine="openpyxl".
+DEP002 = ["openpyxl"]
+
+[tool.importlinter]
+root_packages = ["isere_tourism"]
+
+[[tool.importlinter.contracts]]
+name = "Les modules isere_tourism sont indépendants"
+type = "independence"
+modules = ["isere_tourism.*"]

@@ -48,6 +48,8 @@ make setup       # uv sync --all-packages --all-groups
 make check       # tous les contrôles : lint, types, tests
 make lint        # linters uniquement (sans pytest)
 make test        # tests unitaires
+make deptry      # dépendances déclarées (deptry)
+make import-linter # règles d'import (import-linter)
 make format      # ruff check --fix + ruff format
 make hooks       # installe les hooks pre-commit
 ```
@@ -56,6 +58,9 @@ make hooks       # installe les hooks pre-commit
 
 - `ruff check` et `ruff format --check` (ligne max : **120** caractères) ;
 - `mypy` sur `datasets/sources_py/src` et `datasets/sources_py/tests` ;
+- `deptry` sur `datasets/sources_py` (dépendances déclarées mais inutilisées,
+  imports non déclarés) ;
+- `import-linter` sur le package `isere_tourism` (indépendance des modules) ;
 - `pytest` (tests unitaires, sans appel réseau) ;
 - `yamllint` sur les fichiers YAML (configuration permissive) ;
 - `mdlint` sur les fichiers Markdown (configuration permissive) ;
@@ -168,6 +173,12 @@ réservée aux humains (voir §10).
 - Les tests unitaires ne font **aucun appel réseau**. Mocke les API ou teste des
   fonctions pures.
 - Ajoute un test pour chaque bug corrigé et pour chaque fonctionnalité.
+- Les modules de `isere_tourism` sont **indépendants** : ne pas importer un
+  module du package depuis un autre. Si un code partagé devient nécessaire,
+  crée un module utilitaire dédié et mets à jour le contrat `import-linter`.
+- Toute dépendance importée doit être déclarée dans
+  `datasets/sources_py/pyproject.toml` (`deptry` vérifie les imports non
+  déclarés et les dépendances inutilisées).
 - Avant de proposer une PR : `make check` doit passer, et les hooks
   `pre-commit` doivent être installés avec `make hooks`.
 - La CI GitHub Actions (`.github/workflows/checks.yaml`) exécute `make check`
