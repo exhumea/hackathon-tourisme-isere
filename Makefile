@@ -54,7 +54,7 @@ check-shell: ## Lint des scripts shell
 	$(UV_RUN) shellcheck $(SHELL_FILES)
 
 check-pytest: ## Tests unitaires
-	$(UV_RUN) pytest .
+	$(UV_RUN) pytest
 
 test: check-pytest ## Alias de check-pytest
 

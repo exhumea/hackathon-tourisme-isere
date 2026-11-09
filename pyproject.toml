@@ -42,4 +42,8 @@ exclude = ["^sbx-kits-contrib/", "^datasets/sources_r/", "^data/"]
 warn_unused_ignores = true
 warn_unused_configs = true
 
-#[tool.pytest.ini_options]
+[tool.pytest.ini_options]
+testpaths = ["datasets/sources_py/tests"]
+pythonpath = ["datasets/sources_py/src"]
+norecursedirs = [".git", ".venv", "sbx-kits-contrib", "datasets/sources_r", "data"]
+addopts = "-ra"
