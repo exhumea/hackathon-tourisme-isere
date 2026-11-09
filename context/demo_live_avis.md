@@ -36,10 +36,16 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 ## 3. Speech-to-text (worker)
 
 - **Modèle** : `faster-whisper` `small` **multilingue**, `device="cpu"`, `compute_type="int8"`.
-  Repli sur `base` si le benchmark du jour 1 sur le laptop de démo est trop lent
-  (critère : partiel affiché moins de 3 s après la parole).
-- **Langue** : détection automatique, **verrouillée par enregistrement** dès le premier chunk
-  de 3 s ou plus, pour éviter les bascules de langue entre partiels. Stockée dans `avis.langue`.
+  Repli sur `base` si le benchmark du jour 1 (`demo/bench.py`) sur le laptop de démo est trop lent
+  (critère : partiel affiché moins de 3 s après la parole). Le modèle est chargé hors ligne une fois
+  téléchargé.
+- **Langue** : détection automatique, **une seule fois par enregistrement**, dès 3 s d'audio,
+  parmi les langues candidates (fr, en, de, it, nl, es). Une langue autre que le français n'est
+  retenue que si sa probabilité atteint au moins 0,5 : sinon un français mal détecté est *traduit*
+  par Whisper (constaté en test). Pas de partiel avant la détection. Stockée dans `avis.langue`.
+- **Latence bornée** : chaque appel Whisper coûte une passe d'encodeur complète (fenêtre de
+  30 s), donc au plus une passe par tick. Décodage greedy, `temperature=0`, et un plafond de
+  tokens proportionnel à la durée (anti-boucle d'hallucination).
 - **Live** : la VAD découpe l'audio sur les pauses.
   - Chunk terminé : transcrit une fois et ajouté au texte **validé**.
   - Chunk en cours : retranscrit toutes les ~2 s, ce qui donne le texte **partiel** (affiché en gris).
@@ -47,14 +53,17 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
   dernier chunk. Pas de seconde passe complète, pour garder une latence courte au stop.
 - **Unité** : push-to-talk. 1 enregistrement = 1 conversation en open mic = 1 avis.
 
-## 4. Classification — Jev (`typesafe/jev-1.14`, via OpenRouter)
+## 4. Classification — Jev (`typesafe/jev-1.13`, via OpenRouter)
 
-- Clé : variable d'environnement `OPENROUTER_API_KEY`. Modèle épinglé `typesafe/jev-1.14`
-  (pas l'alias `latest`, pour que la démo reste reproductible).
-- **Un seul appel** `POST /api/alpha/decisions` par avis, avec toutes les questions
-  ci-dessous. ⚠️ À vérifier au jour 1 : forme exacte de la requête et de la réponse, et
-  possibilité de mettre plusieurs questions dans un appel. Si ce n'est pas possible :
-  appels en parallèle.
+- Clé : variable d'environnement `OPENROUTER_API_KEY`. Modèle épinglé `typesafe/jev-1.13`
+  (pas l'alias `latest`, pour que la démo reste reproductible ; surcharge possible par
+  `JEV_MODEL`). La documentation OpenRouter ne référence que la 1.13 : la page `jev-1.14`
+  renvoie 404.
+- **Un seul appel** `POST https://openrouter.ai/api/alpha/decisions` par avis, avec toutes les
+  questions dans `questions` (objet indexé par nom de colonne). Jev y répond en parallèle.
+  Choice : `criteria` = {option: description}. Score : `criteria` = liste ordonnée, et la
+  réponse `score` est un index pondéré à partir de 0, d'où `note = score + 1`. Une réponse
+  `{"type": "refusal"}` donne NULL. ⚠️ Pas encore testé avec une vraie clé.
 - **State** envoyé : le transcript final, plus le contexte (borne, langue).
 - **Règle « missing data »** : chaque Choice contient l'option `non_mentionne`. Si elle gagne,
   la colonne vaut **NULL**. Pas de seuil de confiance. La réponse brute de Jev (probabilités
@@ -72,7 +81,8 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 
 - **Statut** : l'avis est inséré `classif_status='pending'` dès le stop (il s'affiche
   immédiatement), puis passe à `ok` ou `error`. Si `error` : bouton « Re-classifier »
-  dans la colonne Backend. Pas de fallback local.
+  dans la colonne Backend (commande `reclassify`). Pas de fallback local. Au redémarrage, le
+  worker relance les avis restés `pending`.
 
 ## 5. Géolocalisation fictive
 
@@ -82,18 +92,17 @@ Avant chaque enregistrement, on choisit dans l'UI :
   uniforme dans un disque de **2 km** autour de la borne, qui simule un passage par l'app sur une
   rando voisine).
 
-| id | Départ | Massif | lat ≈ | lon ≈ |
+| id | Départ | Massif | lat | lon |
 |---|---|---|---|---|
-| `chamrousse` | Lac Blanc / Chamrousse 1750 | Belledonne | 45.11 | 5.88 |
-| `col_porte` | Col de Porte | Chartreuse | 45.29 | 5.77 |
-| `moliere` | Plateau de la Molière | Vercors | 45.17 | 5.58 |
-| `sept_laux` | Les 7 Laux (Prapoutel) | Belledonne | 45.25 | 5.99 |
-| `bourg_arud` | Bourg-d'Arud → Lac de la Muzelle | Oisans | 44.96 | 6.13 |
+| `chamrousse` | Chamrousse 1750 (Roche Béranger) → Lac Blanc | Belledonne | 45.1124 | 5.8767 |
+| `col_porte` | Col de Porte | Chartreuse | 45.2899 | 5.7670 |
+| `moliere` | Plateau de la Molière | Vercors | 45.1980 | 5.5909 |
+| `sept_laux` | Les 7 Laux (Prapoutel) | Belledonne | 45.2568 | 5.9954 |
+| `bourg_arud` | Bourg-d'Arud → Lac de la Muzelle | Oisans | 44.9870 | 6.1210 |
 
-⚠️ Coordonnées **approximatives** : à vérifier sur OpenStreetMap avant de les figer dans
-`bornes.py`.
+Coordonnées vérifiées sur OpenStreetMap (Nominatim) le 2026-11-09.
 
-## 6. Base de données (SQLite, `data/demo.db`, gitignorée)
+## 6. Base de données (SQLite, `demo/data/demo.db`, gitignorée)
 
 ```sql
 PRAGMA journal_mode = WAL;
@@ -114,6 +123,7 @@ CREATE TABLE avis (
   affluence      TEXT, revenir TEXT,
   note           REAL CHECK (note BETWEEN 1 AND 5),
   classif_status TEXT NOT NULL CHECK (classif_status IN ('pending','ok','error')),
+  classif_error  TEXT,
   jev_model      TEXT,
   jev_raw        TEXT,                   -- JSON brut de la réponse Jev
   is_init        INTEGER NOT NULL DEFAULT 0  -- avis d'initialisation enregistré par l'équipe
@@ -122,13 +132,14 @@ CREATE INDEX idx_avis_dj ON avis(demi_journee);
 
 CREATE TABLE live_state (               -- 1 seule ligne, id = 1
   id INTEGER PRIMARY KEY CHECK (id = 1),
-  status TEXT,                          -- idle | recording | transcribing | classifying
-  committed_text TEXT, partial_text TEXT, langue TEXT, updated_at TEXT
+  status TEXT,       -- offline | loading | idle | recording | transcribing | classifying
+  committed_text TEXT, partial_text TEXT, langue TEXT, borne_id TEXT, source TEXT,
+  message TEXT, heartbeat_at TEXT, updated_at TEXT   -- heartbeat : worker vivant
 );
 
 CREATE TABLE control (                  -- commandes UI → worker
-  id INTEGER PRIMARY KEY, cmd TEXT CHECK (cmd IN ('start','stop')),
-  borne_id TEXT, source TEXT, event_ts_override TEXT,
+  id INTEGER PRIMARY KEY, cmd TEXT CHECK (cmd IN ('start','stop','reclassify')),
+  borne_id TEXT, source TEXT, event_ts_override TEXT, is_init INTEGER, avis_id INTEGER,
   created_at TEXT, consumed INTEGER DEFAULT 0
 );
 ```
@@ -178,25 +189,26 @@ Conteneur Streamlit à clé (`st.container(key="phone")`), mis en forme en CSS (
 
 ```
 demo/
-  worker.py      # micro + VAD + STT + Jev
+  worker.py      # micro + VAD + STT + Jev (--simulate pour rejouer des fichiers)
   app.py         # Streamlit
-  db.py          # schéma, connexion WAL, requêtes d'agrégat
+  db.py          # schéma, connexion WAL, requêtes
+  stats.py       # agrégats des critères
   jev.py         # client Decisions API + mapping questions → colonnes
   bornes.py      # 5 bornes + tirage du jitter « app »
   periods.py     # calcul demi_journee + navigation
-  tests/         # periods, mapping Jev (réponse mockée), agrégats
+  bench.py       # benchmark STT sur la machine de démo
+  tests/
 ```
-Lancement : `python demo/worker.py` et `streamlit run demo/app.py`.
-Dépendances : `faster-whisper`, `sounddevice`, `numpy`, `streamlit`, `pydeck`,
-`altair`, `httpx`.
+Lancement (depuis `demo/`) : `uv run python worker.py` et `uv run streamlit run app.py`.
+Voir `demo/README.md`. Dépendances : `faster-whisper` (avec `av<19`, incompatible avec la 19),
+`sounddevice` (PortAudio), `numpy`, `streamlit`, `pydeck`, `altair`, `pandas`, `httpx`.
 
 ## 10. Risques et vérifications au jour 1
 
 | Risque | Action |
 |---|---|
-| Format exact de l'API Jev, multi-questions | Premier appel curl réel, puis figer `jev.py` |
+| Premier appel Jev réel (schéma tiré de la doc, non testé) | Vérifier `jev_raw` dans l'UI |
 | Latence STT `small` sur le CPU du laptop de démo | Benchmark sur 30 s d'audio ; repli `base` |
 | Réseau de la salle (risque accepté) | Partage 4G prêt ; avis conservé en `error` + bouton re-classifier |
 | Bascule de langue auto sur des extraits courts | Langue verrouillée par enregistrement |
 | Permission micro / mauvais périphérique | `sounddevice.query_devices()` au lancement, device configurable |
-| Coordonnées des bornes | Vérifier sur OSM |
