@@ -40,7 +40,7 @@ check-ruff: ## Ruff (lint + format)
 	$(UV_RUN) ruff format --check .
 
 check-mypy: ## Vérification des types
-	$(UV_RUN) mypy
+	$(UV_RUN) mypy .
 
 check-yamllint: ## Lint des fichiers YAML
 	$(UV_RUN) yamllint -c .yamllint.yaml $(YAML_FILES)
@@ -54,7 +54,7 @@ check-shell: ## Lint des scripts shell
 	$(UV_RUN) shellcheck $(SHELL_FILES)
 
 check-pytest: ## Tests unitaires
-	$(UV_RUN) pytest
+	$(UV_RUN) pytest .
 
 test: check-pytest ## Alias de check-pytest
 

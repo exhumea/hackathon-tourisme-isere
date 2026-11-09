@@ -402,7 +402,7 @@ def plot_map(dataframe: pd.DataFrame) -> None:
         center = [46.5, 2.5]
 
     map_ = folium.Map(location=center, zoom_start=8)
-    cluster = MarkerCluster().add_to(map_)
+    cluster = MarkerCluster().add_to(map_)  # type: ignore[no-untyped-call]
 
     for _, row in geo_dataframe.iterrows():
         name = html.escape(str(row.get("name", "")))
