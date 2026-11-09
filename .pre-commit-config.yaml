@@ -1,13 +1,20 @@
 default_install_hook_types: [pre-commit, pre-push]
 
+exclude: |
+  (?x)^(
+    vendor/|
+    generated/|
+    .*\.min\.js$|
+    .*\.lock$|
+    .*\.(docx|pptx|pdf|xlsx|zip|gz)$
+  )
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^sbxenv\.yaml$|\.(docx|pptx|pdf|xlsx)$
       - id: end-of-file-fixer
-        exclude: ^sbxenv\.yaml$|\.(docx|pptx|pdf|xlsx)$
       - id: check-yaml
       - id: check-merge-conflict
       - id: check-added-large-files
@@ -16,8 +23,7 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.17.4
     hooks:
-      - id: ruff
-        args: [--fix]
+      - id: ruff-check
       - id: ruff-format
 
   - repo: https://github.com/adrienverge/yamllint
@@ -41,12 +47,12 @@ repos:
     hooks:
       - id: mypy
         name: mypy
-        entry: uv run --all-packages mypy
+        entry: uv run --no-sync --all-packages mypy
         language: system
         types: [python]
       - id: pytest
         name: pytest
-        entry: uv run --all-packages pytest
+        entry: uv run --no-sync --all-packages pytest
         language: system
         pass_filenames: false
         stages: [pre-push]
