@@ -1,7 +1,13 @@
 name: Claude PR Review
+# Revue désactivée par défaut : aucun déclenchement automatique sur les PR.
+# Relance ponctuelle : Actions > « Claude PR Review » > Run workflow, avec le
+# numéro de la pull request à relire.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Numéro de la pull request à relire
+        required: true
 
 jobs:
   review:
@@ -20,7 +26,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            Review this pull request (#${{ github.event.pull_request.number }}).
+            Review this pull request (#${{ inputs.pr_number }}).
             Focus on bugs, security issues, missing tests, and unclear code.
             Be concise. Post inline comments on specific lines and a short
             summary comment at the end. Don't comment on style that the
