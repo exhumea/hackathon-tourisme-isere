@@ -42,10 +42,10 @@ Deux processus Python sur le laptop, qui communiquent **uniquement via SQLite** 
  │ micro (sounddevice 16 kHz mono)           │        │ Col. gauche « Backend »                    │
  │  → VAD (silero) → chunks                  │        │  - bouton push-to-talk + sélecteur borne   │
  │  → faster-whisper (CPU int8)              │◄──────►│  - transcription live (partiel + validé)   │
- │  → live_state (partiel/validé)            │ SQLite │  - N dernières lignes de `avis`            │
- │ au stop : INSERT avis (pending)           │  WAL   │ Col. droite « Frontend » (mockup tél.)     │
- │  → Jev (OpenRouter) → UPDATE avis (ok)    │        │  - carte des bornes :                      │
- │                                           │        │    taille = fréquentation (éco-compteur)   │
+ │  → live_state (partiel/validé)            │ SQLite │  - N dernières transcriptions + inférences │
+ │ au stop : INSERT transcription            │  WAL   │ Col. droite « Frontend » (mockup tél.)     │
+ │  → Jev (OpenRouter)                       │        │  - carte des bornes :                      │
+ │  → INSERT inference_avis (ok / error)     │        │    taille = fréquentation (éco-compteur)   │
  │                                           │        │    couleur = score du critère choisi       │
  └───────────────────────────────────────────┘        └────────────────────────────────────────────┘
 ```
@@ -67,8 +67,8 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 4. `live_state.status` suit le cycle `idle → recording → transcribing → classifying → idle`,
    sans saut en arrière au sein d'un enregistrement (le cas 3 saute `classifying`).
 5. **Au démarrage**, le worker remet `live_state` à `idle`, marque toutes les commandes
-   non consommées comme consommées (commandes périmées), et passe les avis `pending`
-   restés orphelins en `error` (re-classifiables).
+   non consommées comme consommées (commandes périmées), et marque en `error` les
+   transcriptions orphelines (sans ligne `inference_avis`), re-classifiables.
 6. `live_state.updated_at` est rafraîchi au moins toutes les 2 s par le worker
    (heartbeat). Si l'UI voit un heartbeat de plus de 5 s → bandeau « worker arrêté ».
 
@@ -79,7 +79,7 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
   temps de transcription d'un chunk de 3 s < 3 s sur le laptop de démo, chiffres
   `small` et `base` notés dans `demo/BENCH.md`.
 - **Langue** : détection automatique, **verrouillée par enregistrement** dès le premier chunk
-  de 3 s ou plus, pour éviter les bascules de langue entre partiels. Stockée dans `avis.langue`.
+  de 3 s ou plus, pour éviter les bascules de langue entre partiels. Stockée dans `transcription.langue`.
 - **Live** (stretch 1) : la VAD découpe l'audio sur les pauses.
   - Chunk terminé : transcrit une fois et ajouté au texte **validé**.
   - Chunk en cours : retranscrit toutes les ~2 s, ce qui donne le texte **partiel** (affiché en gris).
@@ -114,9 +114,10 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 | `profil` | Choice | groupe_amis, famille, seul, couple | composition du groupe, **uniquement si explicite** |
 
 - **Pré-condition** : Jev n'est appelé que sur un transcript non vide (§2, invariant 3).
-- **Statut** : l'avis est inséré `classif_status='pending'` dès le stop (il s'affiche
-  immédiatement), puis passe à `ok` ou `error`. Si `error` : bouton « Re-classifier » dans la
-  colonne Backend.
+- **Statut** : la `transcription` est insérée dès le stop (elle s'affiche immédiatement,
+  « en cours de classification » tant qu'il n'existe pas de ligne `inference_avis`). Après
+  l'appel Jev, le worker insère une ligne `inference_avis` en `ok` ou `error`. Si `error` :
+  bouton « Re-classifier » dans la colonne Backend (remplace la ligne, `INSERT OR REPLACE`).
 
 ## 5. Géolocalisation fictive
 
@@ -128,8 +129,9 @@ Avant chaque enregistrement, on choisit dans l'UI la **borne** (1 parmi 5). En s
 la **source** `app` tire un point aléatoire uniforme dans un disque de 2 km autour de la
 borne (passage par l'app sur une rando voisine) ; par défaut, source `borne`.
 
-Les bornes sont des **paramètres de démo** (données, pas logique), lus au démarrage depuis
-`demo/bornes.yaml`. La logique est agnostique du territoire.
+Les bornes sont des **paramètres de démo** (données, pas logique) : `demo/bornes.yaml`
+est la source, chargé au démarrage dans la table `bornes` (§7, upsert). Le compteur de
+référence et le `code_insee` restent dans le YAML. La logique est agnostique du territoire.
 
 | id | Site ENS (`ID_ENS`) | Commune (`code_insee`) | Éco-compteur de référence | lat ≈ | lon ≈ |
 |---|---|---|---|---|---|
@@ -162,46 +164,65 @@ Les bornes sont des **paramètres de démo** (données, pas logique), lus au dé
 
 ```sql
 PRAGMA journal_mode = WAL;
+PRAGMA foreign_keys = ON;
 
-CREATE TABLE avis (
-  id             INTEGER PRIMARY KEY,
-  event_ts       TEXT NOT NULL,          -- ISO 8601 UTC ; horloge réelle ou date simulée (DEMO_PREP)
-  demi_journee   TEXT NOT NULL,          -- ex. '2026-11-09_matin'
-  borne_id       TEXT NOT NULL,
-  lat            REAL NOT NULL,
-  lon            REAL NOT NULL,
-  transcript     TEXT NOT NULL,
-  langue         TEXT,
-  satisfaction   REAL CHECK (satisfaction BETWEEN 0 AND 100),  -- NULL si confiance faible
-  affluence      REAL CHECK (affluence BETWEEN 0 AND 100),
-  provenance     TEXT,                   -- departement | hors_departement | NULL
-  transport      TEXT,                   -- voiture | transport_en_commun | velo | NULL
-  profil         TEXT,                   -- groupe_amis | famille | seul | couple | NULL
-  classif_status TEXT NOT NULL CHECK (classif_status IN ('pending','ok','error')),
-  jev_raw        TEXT,                   -- JSON brut de la réponse Jev
-  is_init        INTEGER NOT NULL DEFAULT 0
+CREATE TABLE bornes (                   -- chargée depuis bornes.yaml au démarrage
+  id   TEXT PRIMARY KEY,                -- ex. 'bois_batie'
+  lon  REAL NOT NULL,
+  lat  REAL NOT NULL
+);
+
+CREATE TABLE transcription (            -- 1 enregistrement non vide = 1 ligne
+  id         INTEGER PRIMARY KEY,
+  event_ts   INTEGER NOT NULL,          -- timestamp Unix (s, UTC) ; réel ou date simulée (DEMO_PREP)
+  borne_id   TEXT NOT NULL REFERENCES bornes(id),
+  texte      TEXT NOT NULL CHECK (texte <> ''),
+  langue     TEXT,
+  is_init    INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX idx_transcription_ts ON transcription(event_ts);
+
+CREATE TABLE inference_avis (           -- résultat Jev, 0 ou 1 ligne par transcription
+  transcription_id INTEGER PRIMARY KEY REFERENCES transcription(id) ON DELETE CASCADE,
+  status       TEXT NOT NULL CHECK (status IN ('ok','error')),
+  satisfaction REAL CHECK (satisfaction BETWEEN 0 AND 100),  -- NULL si confiance faible
+  affluence    REAL CHECK (affluence BETWEEN 0 AND 100),
+  provenance   TEXT,                    -- departement | hors_departement | NULL
+  transport    TEXT,                    -- voiture | transport_en_commun | velo | NULL
+  profil       TEXT,                    -- groupe_amis | famille | seul | couple | NULL
+  jev_raw      TEXT                     -- JSON brut de la réponse Jev
 );
 
 CREATE TABLE live_state (               -- 1 seule ligne, id = 1
   id INTEGER PRIMARY KEY CHECK (id = 1),
   status TEXT,                          -- idle | recording | transcribing | classifying
   committed_text TEXT, partial_text TEXT,
-  updated_at TEXT                       -- heartbeat worker
+  updated_at INTEGER                    -- heartbeat worker (timestamp Unix)
 );
 
 CREATE TABLE control (                  -- commandes UI → worker
   id INTEGER PRIMARY KEY,
   cmd TEXT CHECK (cmd IN ('start','stop')),
-  borne_id TEXT, event_ts_override TEXT,
+  borne_id TEXT REFERENCES bornes(id),
+  event_ts_override INTEGER,            -- timestamp Unix (DEMO_PREP)
   consumed INTEGER DEFAULT 0
 );
 ```
 
+- La **demi-journée n'est pas stockée** : l'app la calcule à partir de `event_ts`
+  (`periods.py`, §8). Filtrer une demi-journée = requête sur l'intervalle
+  `[debut, fin)` de `event_ts` renvoyé par `periods.intervalle(demi_journee)`.
+- Position d'un avis = celle de sa borne (jointure `bornes`). Le jitter « app » (stretch 4)
+  est calculé à l'affichage, sans colonne en base.
+- Vue de lecture pour l'app : `transcription LEFT JOIN inference_avis` (pas de ligne
+  d'inférence = classification en cours).
+
 ## 8. Demi-journées
 
-- Fuseau **Europe/Paris** (calcul fait en heure locale, puis stocké).
+- Calcul **côté app**, jamais stocké : `event_ts` (UTC) est converti en **Europe/Paris**.
 - `heure < 13 → matin`, sinon `après-midi` (0h–6h rattaché au matin, 20h–24h à l'après-midi).
-- `periods.demi_journee(ts) -> str` est **totale**, ce qui garantit le `NOT NULL`. Cas de test
+- `periods.demi_journee(ts: int) -> str` (ex. `'2026-11-09_matin'`) est **totale**, et
+  `periods.intervalle(dj) -> (debut, fin)` en est l'inverse pour les requêtes. Cas de test
   figés : `00:00`, `05:59`, `12:59 → matin` ; `13:00`, `19:59`, `20:00`, `23:59 → après-midi` ;
   plus un passage heure d'été / heure d'hiver.
 - Un `event_ts` **dans le futur** est refusé à l'insertion (erreur explicite).
@@ -218,8 +239,9 @@ CREATE TABLE control (                  -- commandes UI → worker
 1. Sélecteur borne, bouton **● Enregistrer / ■ Stop**.
 2. Transcription live : statut du worker (bandeau si heartbeat perdu, indication de l'arrêt
    automatique), texte validé (noir) + partiel (gris), langue détectée.
-3. **Dernières lignes** de `avis` (10 par défaut) : heure, borne, transcript tronqué,
-   colonnes de classif (NULL affichés `—`), statut, `jev_raw` dépliable, bouton supprimer.
+3. **Dernières lignes** (10 par défaut, `transcription LEFT JOIN inference_avis`) : heure,
+   borne, texte tronqué, colonnes d'inférence (NULL affichés `—`), statut, `jev_raw`
+   dépliable, bouton supprimer (supprime la transcription, l'inférence suit en cascade).
 
 ### Colonne droite — « Frontend » (mockup téléphone)
 Conteneur Streamlit à clé (`st.container(key="phone")`), mis en forme en CSS (classe
@@ -282,7 +304,7 @@ de salle (projecteur, réseau de la salle), chacun contre la Définition de fait
 |---|---|
 | Latence bout en bout | énoncé de 20 s → avis visible, classé, en < 10 s après le stop |
 | Arrêt automatique | 15 s de silence → enregistrement terminé ; avis créé seulement si du texte a été capté |
-| Transcript vide | enregistrement sans parole → aucune ligne dans `avis`, aucun appel Jev |
+| Transcript vide | enregistrement sans parole → aucune ligne dans `transcription`, aucun appel Jev |
 | Partiels live (si stretch 1) | premier partiel affiché < 3 s après le début de la parole |
 | Classification | ≥ 8 avis sur 10 classés `ok`, valeurs jugées correctes par l'équipe |
 | No guess | un avis sans mention de transport → `transport` NULL, affiché `—` |
@@ -295,12 +317,12 @@ de salle (projecteur, réseau de la salle), chacun contre la Définition de fait
 demo/
   worker.py      # micro + VAD + STT + arrêt auto + appel Jev
   app.py         # Streamlit
-  db.py          # schéma, connexion WAL, requêtes d'agrégat
+  db.py          # schéma, connexion WAL, chargement bornes, requêtes d'agrégat
   jev.py         # client HTTP Decisions API (effets de bord, mockable)
   mapping.py     # pur : questions Jev ↔ colonnes, réponse Jev → valeurs, seuil de confiance
-  bornes.yaml    # paramètres de démo : 5 bornes ENS, code_insee, compteur de référence
+  bornes.yaml    # paramètres de démo : 5 bornes ENS, code_insee, compteur de référence → table `bornes`
   bornes.py      # chargement de bornes.yaml (+ jitter « app » en stretch)
-  periods.py     # calcul demi_journee + navigation
+  periods.py     # demi_journee(ts) / intervalle(dj), calculés côté app + navigation
   reference.py   # résolution data/ssp ou ../onyxia-data, fréquentation éco-compteurs (§6)
   tests/         # periods, mapping (réponse mockée), reference, agrégats, invariants §2
 ```
