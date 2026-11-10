@@ -1,19 +1,26 @@
 ---
 theme: default
+layout: cover
+class: cover
 title: "La borne qui écoute"
 info: |
   Hackathon DGE « Gestion des flux touristiques » — Isère
-class: text-center
 highlighter: shiki
 mdc: true
+transition: fade
+colorSchema: light
 ---
+
+<div class="kicker">Hackathon DGE · Isère 2026</div>
+
+<div class="cover-accent"></div>
 
 # La borne qui écoute
 
 ## Le livre d'or numérique des sites touristiques
 
-<div class="pt-10 opacity-70">
-Hackathon DGE · Gestion des flux touristiques · Isère
+<div class="cover-meta pt-12">
+Gestion des flux touristiques · Isère · Équipe 5
 </div>
 
 <!--
@@ -25,6 +32,8 @@ seulement compter les visiteurs, et commencer à les écouter. »
 -->
 
 ---
+
+<div class="kicker">01 · Contexte</div>
 
 # 1. Contexte — le visiteur, angle mort des flux
 
@@ -40,16 +49,18 @@ seulement compter les visiteurs, et commencer à les écouter. »
 
 <div class="text-xl leading-relaxed">
 
-- On **compte** les flux
-- On **n'écoute** pas les visiteurs
-- **Qui ? Pourquoi ? Satisfait ?**
+<div>On <strong>compte</strong> les flux</div>
+<div v-click>On <strong>n'écoute</strong> pas les visiteurs</div>
+<div v-click><strong>Qui ? Pourquoi ? Satisfait ?</strong></div>
 
 </div>
 
 </div>
 
-<div class="pt-10 text-center text-sm opacity-60">
-16,7 M de nuitées en Isère · des compteurs, très peu de verbatims
+<div class="stat-row pt-10">
+  <div class="stat"><strong>16,7 M</strong><span>nuitées 2024</span></div>
+  <div class="stat"><strong>24 h</strong><span>enquête terrain</span></div>
+  <div class="stat"><strong>5</strong><span>sites pilotes</span></div>
 </div>
 
 <!--
@@ -81,6 +92,8 @@ L'open mic :
 ---
 layout: two-cols
 ---
+
+<div class="kicker">02 · Concept</div>
 
 # 2. Le concept — l'objet, l'app, le déploiement
 
@@ -143,13 +156,15 @@ L'app comme prolongement :
 
 ---
 
+<div class="kicker">03 · Démo</div>
+
 # 3. La démo
 
-<div class="pt-6 text-center text-2xl tracking-wide">
-Parler → Transcrire → Classifier → Afficher
+<div class="pipeline pt-6">
+  <span>Parler</span><i>→</i><span>Transcrire</span><i>→</i><span>Classifier</span><i>→</i><span>Afficher</span>
 </div>
 
-<div class="pt-12 p-6 border rounded text-center">
+<div class="card pt-8 mt-10 text-center">
 
 ### Placeholder
 
@@ -184,6 +199,8 @@ Sous le capot :
 ---
 layout: two-cols
 ---
+
+<div class="kicker">04 · Modèle économique</div>
 
 # 4. Modèle économique
 
@@ -235,11 +252,13 @@ Robustesse :
 
 ---
 
+<div class="kicker">05 · Réutilisation des données</div>
+
 # 5. Réutilisation des données
 
 <div class="grid grid-cols-3 gap-5 pt-6 text-sm">
 
-<div class="p-4 border rounded">
+<div class="card">
 
 ### Tableau de bord
 
@@ -247,7 +266,7 @@ Volume, note moyenne,<br>taux de retour
 
 </div>
 
-<div class="p-4 border rounded">
+<div class="card">
 
 ### Carte de saturation
 
@@ -255,7 +274,7 @@ Affluence ressentie<br>× éco-compteurs
 
 </div>
 
-<div class="p-4 border rounded">
+<div class="card">
 
 ### Profils visiteurs
 
@@ -263,7 +282,7 @@ Origine, groupe,<br>mode de venue
 
 </div>
 
-<div class="p-4 border rounded">
+<div class="card">
 
 ### Lien transports
 
@@ -271,7 +290,7 @@ Part sans voiture,<br>besoin de navettes
 
 </div>
 
-<div class="p-4 border rounded">
+<div class="card">
 
 ### Alertes précoces
 
@@ -279,7 +298,7 @@ Affluence anormale,<br>signalétique défaillante
 
 </div>
 
-<div class="p-4 border rounded">
+<div class="card">
 
 ### API ouverte
 
@@ -323,11 +342,13 @@ de pilotage au quotidien.
 
 ---
 
+<div class="kicker">Annexe A</div>
+
 # Annexe A — Formules du device
 
 <div class="grid grid-cols-3 gap-6 pt-8 text-center text-sm">
 
-<div class="p-6 border rounded">
+<div class="card text-center">
 
 ### 🦫 Marmotte
 
@@ -335,7 +356,7 @@ Vercors
 
 </div>
 
-<div class="p-6 border rounded">
+<div class="card text-center">
 
 ### 🦌 Chamois
 
@@ -343,7 +364,7 @@ Belledonne
 
 </div>
 
-<div class="p-6 border rounded">
+<div class="card text-center">
 
 ### 🦅 Aigle
 
@@ -383,6 +404,8 @@ Contraintes de design :
 layout: two-cols
 ---
 
+<div class="kicker">Annexe B</div>
+
 # Annexe B — RGPD
 
 ### Ce qui remonte
@@ -420,6 +443,8 @@ Base légale et conformité :
 -->
 
 ---
+
+<div class="kicker">Annexe C</div>
 
 # Annexe C — Architecture technique
 
@@ -468,6 +493,10 @@ est conservée.
 -->
 
 ---
+class: closing
+---
+
+<div class="kicker">Merci</div>
 
 # Merci
 
