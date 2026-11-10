@@ -10,6 +10,7 @@ import html
 import json
 import math
 import os
+import sqlite3
 import time
 from datetime import datetime, timedelta
 from typing import Any
@@ -75,10 +76,14 @@ TERR = bornes.load()
 
 
 @st.cache_resource
-def conn() -> Any:
-    c = db.connect(db.DEFAULT_PATH)
-    db.upsert_bornes(c, TERR.bornes.values())  # la carte s'affiche même sans worker
-    return c
+def init_db() -> None:
+    """Une fois par processus : schéma et bornes (la carte s'affiche même sans worker)."""
+    db.upsert_bornes(db.thread_conn(db.DEFAULT_PATH), TERR.bornes.values())
+
+
+def conn() -> sqlite3.Connection:
+    """Jamais de connexion partagée entre threads (sessions et fragments Streamlit) : une par thread."""
+    return db.thread_conn(db.DEFAULT_PATH)
 
 
 @st.cache_data(show_spinner=False)
@@ -90,7 +95,7 @@ def frequentations(mois: int) -> tuple[dict[str, reference.Frequentation | None]
         return dict.fromkeys(TERR.bornes), str(e)
 
 
-C = conn()
+init_db()
 ss = st.session_state
 ss.setdefault("win", None)  # None = demi-journée en cours (live) ; sinon clé de demi-journée
 ss.setdefault("expect", None)  # (statut attendu, instant) juste après un clic
@@ -112,7 +117,7 @@ STATUS_UI = {
 
 
 def worker_status() -> tuple[str, Any]:
-    live = db.get_live(C)
+    live = db.get_live(conn())
     if live["updated_at"] is None or time.time() - live["updated_at"] > HEARTBEAT_LOST_S:
         return "offline", live
     return live["status"] or "idle", live
@@ -128,10 +133,10 @@ def simulated_ts() -> int | None:
 
 def _send(cmd: str) -> None:
     if cmd == "start":
-        db.push_command(C, "start", borne_id=ss.borne, event_ts_override=simulated_ts())
+        db.push_command(conn(), "start", borne_id=ss.borne, event_ts_override=simulated_ts())
         ss.expect = ("recording", time.monotonic())
     else:
-        db.push_command(C, "stop")
+        db.push_command(conn(), "stop")
         ss.expect = ("transcribing", time.monotonic())
 
 
@@ -183,16 +188,16 @@ def _status(r: Any) -> str:
 
 
 def _reclassify(tid: int) -> None:
-    worker.classify_transcription(C, tid, TERR)
+    worker.classify_transcription(conn(), tid, TERR)
 
 
 def _delete(tid: int) -> None:
-    db.delete_transcription(C, tid)
+    db.delete_transcription(conn(), tid)
 
 
 @st.fragment(run_every=1.0)
 def latest_panel() -> None:
-    rows = db.latest(C, N_LATEST)
+    rows = db.latest(conn(), N_LATEST)
     if not rows:
         st.info("Aucun avis en base pour l'instant.")
         return
@@ -390,7 +395,7 @@ def phone() -> None:
     )
     dj, all_past = window_controls()
     debut, fin = (None, None) if all_past else periods.intervalle(dj)
-    aggs = db.agregats(C, debut, fin)
+    aggs = db.agregats(conn(), debut, fin)
     freqs, err = frequentations(periods.mois(dj))
     st_folium(build_map(aggs, crit, freqs), height=330, use_container_width=True, returned_objects=[], key="map")
     st.markdown(legend_html(crit), unsafe_allow_html=True)

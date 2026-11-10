@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import threading
 import time
 from collections.abc import Iterable
 from pathlib import Path
@@ -84,6 +85,22 @@ def connect(path: Path | str = DEFAULT_PATH) -> sqlite3.Connection:
     conn.execute("PRAGMA busy_timeout = 10000")
     conn.executescript(SCHEMA)
     return conn
+
+
+_local = threading.local()
+
+
+def thread_conn(path: Path | str = DEFAULT_PATH) -> sqlite3.Connection:
+    """Connexion propre au thread appelant, ouverte au premier appel.
+
+    Un objet `sqlite3.Connection` ne doit jamais être utilisé par deux threads à la fois :
+    l'app Streamlit exécute les sessions et leurs fragments dans des threads différents.
+    """
+    conns: dict[str, sqlite3.Connection] = _local.__dict__.setdefault("conns", {})
+    key = str(path)
+    if key not in conns:
+        conns[key] = connect(path)
+    return conns[key]
 
 
 def upsert_bornes(conn: sqlite3.Connection, bornes: Iterable[Borne]) -> None:

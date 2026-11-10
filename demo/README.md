@@ -22,6 +22,9 @@ sudo apt-get install -y libportaudio2     # Linux uniquement : PortAudio pour le
 export OPENROUTER_API_KEY=sk-or-...       # clé OpenRouter (classeur Excel du SSP Cloud)
 ```
 
+La clé doit être définie dans les **deux** terminaux : le worker classifie les nouveaux avis,
+et l'app appelle Jev elle-même quand on clique sur **Re-classifier**.
+
 Les données de référence sont lues dans `data/ssp/` ou `../onyxia-data/`, le premier
 dossier présent étant retenu (fichier `Fréquentation/données_eco_compteurs_ENS.xlsx`).
 

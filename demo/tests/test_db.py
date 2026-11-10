@@ -1,4 +1,5 @@
 import sqlite3
+import threading
 import time
 
 import bornes
@@ -79,3 +80,40 @@ def test_reset_au_demarrage(conn):
     assert db.get_avis(conn, done)["status"] == "ok"
     assert db.pop_commands(conn) == []
     assert db.get_live(conn)["status"] == "idle"
+
+
+def test_une_connexion_par_thread(tmp_path):
+    path = tmp_path / "t.db"
+    assert db.thread_conn(path) is db.thread_conn(path)
+    other = []
+    t = threading.Thread(target=lambda: other.append(db.thread_conn(path)))
+    t.start()
+    t.join()
+    assert other[0] is not db.thread_conn(path)
+
+
+def test_lectures_concurrentes_sans_erreur(tmp_path):
+    """Régression PR #18 : sessions et fragments Streamlit lisent la base depuis plusieurs threads."""
+    path = tmp_path / "t.db"
+    c = db.thread_conn(path)
+    db.upsert_bornes(c, bornes.load().bornes.values())
+    for i in range(5):
+        _avis(c, texte=f"avis {i}")
+    errors = []
+
+    def lire():
+        try:
+            for _ in range(200):
+                conn = db.thread_conn(path)
+                assert db.get_live(conn) is not None
+                assert len(db.agregats(conn, None, None)) == 5
+                assert all(r["texte"] for r in db.latest(conn, 10))
+        except Exception as e:
+            errors.append(e)
+
+    threads = [threading.Thread(target=lire) for _ in range(6)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == []
