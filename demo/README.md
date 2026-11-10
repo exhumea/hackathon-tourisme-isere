@@ -7,11 +7,24 @@ Un visiteur parle à une borne posée près du parking d'un Espace Naturel Sensi
 classifiée par Jev (OpenRouter) en critères : satisfaction, affluence ressentie, provenance,
 transport et profil. Le résultat est croisé avec la fréquentation mesurée par l'éco-compteur.
 
-L'écran projeté a deux colonnes :
+L'écran projeté a deux colonnes, séparées par un trait vertical :
 
-- **Backend** : enregistrement, transcription live, dernières lignes de la base ;
-- **Frontend** : mockup de téléphone avec la carte des 5 bornes. La taille d'un cercle
-  représente la fréquentation (éco-compteur, simulée) et sa couleur le critère choisi.
+- à gauche, la partie technique : enregistrement, transcription live, dernières lignes de la base ;
+- à droite, l'app « La borne qui écoute » dans un mockup de téléphone, avec la carte des 5
+  bornes sur le plan IGN.
+  - La taille d'un cercle représente la fréquentation (éco-compteur, simulée).
+  - Sa couleur représente le critère choisi : satisfaction (rouge → vert), affluence
+    (bleu → rouge) ou part hors département (jaune → violet).
+  - Une borne sans avis est en gris neutre.
+
+**Données manquantes (Jev).** Une colonne est NULL quand l'information n'est pas dans la
+transcription :
+
+- pour un score, une question `noul` associée (`satisfaction_present`, `affluence_present`)
+  dit si l'information est présente ;
+- pour un choix, Jev peut répondre la catégorie `missing`.
+
+Le seuil de confiance `SEUIL_CONFIANCE` s'applique en plus.
 
 ## Installation (laptop de démo)
 
@@ -112,7 +125,8 @@ Les tests ne font aucun appel réseau et ne lisent pas les données privées. Il
   (`jev-1.14` n'apparaît pas encore dans la doc OpenRouter, qui ne cite que `jev-1.13`) et la
   présence de `confidence` par question.
 - [ ] Fixer `SEUIL_CONFIANCE` sur une dizaine d'avis réels. Vérifier qu'un avis sans mention
-  de transport donne bien `transport` NULL.
+  de transport donne bien `transport` NULL (`missing`), et un avis qui ne parle pas d'affluence
+  `affluence` NULL (`affluence_present`).
 - [ ] Micro : `--list-devices`, puis test en salle (bruit, arrêt automatique intempestif).
 - [ ] Coordonnées des bornes recalées sur le parking (OpenStreetMap), électricité, commune.
 - [ ] Modèle déjà téléchargé ; test Wi-Fi coupé (le STT marche, Jev passe en erreur).

@@ -25,8 +25,10 @@ def build_request(transcript: str, questions: dict[str, Any], borne: str, langue
     return {
         "model": MODEL,
         "state": {
-            "contexte": "Borne de captation du ressenti des visiteurs, près du parking d'un espace naturel "
-            "sensible. Transcription automatique de ce que le visiteur a dit ; elle peut contenir des erreurs.",
+            "contexte": "Recueil du ressenti d'un randonneur, qui parle librement à une borne au départ "
+            "d'une randonnée dans un espace naturel sensible. Le texte est une transcription automatique de "
+            "sa parole : elle peut être de mauvaise qualité, avec des mots mal reconnus ou des termes "
+            "hallucinés sans rapport avec le reste. Ne retiens que ce que le visiteur exprime clairement.",
             "borne": borne,
             "langue": langue or "inconnue",
             "transcription": transcript,

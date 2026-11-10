@@ -83,7 +83,12 @@ def env(tmp_path, monkeypatch):
 
     def fake_decide(body, client=None):
         jev_calls.append(body)
-        return {"answers": {"satisfaction": {"type": "score", "score": 4, "confidence": 0.9}}}
+        return {
+            "answers": {
+                "satisfaction_present": {"type": "noul", "noul": 0.95},
+                "satisfaction": {"type": "score", "score": 4, "confidence": 0.9},
+            }
+        }
 
     monkeypatch.setattr(jev, "decide", fake_decide)
     statuses = []

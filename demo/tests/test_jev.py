@@ -22,7 +22,8 @@ def test_un_seul_appel_avec_toutes_les_questions(monkeypatch):
     assert len(seen) == 1
     assert seen[0].headers["authorization"] == "Bearer k"
     assert body["model"] == "typesafe/jev-1.14"
-    assert set(body["questions"]) == set(mapping.COLUMNS)
+    assert set(body["questions"]) == set(mapping.questions("Isère"))
+    assert "parking" not in body["state"]["contexte"]
     assert body["state"]["transcription"] == "super balade"
 
 

@@ -1,8 +1,12 @@
 """Pur : questions Jev ↔ colonnes de `inference_avis`, réponse Jev → valeurs, seuil de confiance.
 
-Règle « missing data » (§4), sur toutes les colonnes : refus, valeur absente ou confiance
-< `SEUIL_CONFIANCE` → NULL. Si Jev ne renvoie pas de confiance pour une question, la
-valeur est gardée telle quelle (go/no-go §10).
+Règle « missing data » (§4 et revue de #18), sur toutes les colonnes → NULL si :
+
+- score : la question `noul` associée (`<colonne>_present`) dit que l'information n'est
+  pas dans la transcription (probabilité < 0,5), ou est refusée ;
+- choix : Jev répond la catégorie `missing` ;
+- toutes : refus, valeur absente ou confiance < `SEUIL_CONFIANCE`. Si Jev ne renvoie pas de
+  confiance pour une question, la valeur est gardée telle quelle (go/no-go §10).
 """
 
 from __future__ import annotations
@@ -19,13 +23,31 @@ CHOICE_OPTIONS: dict[str, tuple[str, ...]] = {
     "profil": ("groupe_amis", "famille", "seul", "couple"),
 }
 COLUMNS = (*SCORE_COLUMNS, *CHOICE_OPTIONS)
+MISSING = "missing"
+PRESENT_SUFFIX = "_present"  # question noul : l'information du score est-elle dans la transcription ?
+NOUL_SEUIL = 0.5
 
-_EXPLICITE = " Réponds uniquement si la conversation le dit explicitement ; ne déduis rien."
+_MISSING_TXT = "La transcription ne contient pas cette information, ou pas assez clairement pour trancher."
+
+_EXPLICITE = f" Uniquement si le visiteur le dit explicitement ; sinon, réponds « {MISSING} »."
+
+
+def _present(sujet: str) -> dict[str, Any]:
+    return {
+        "type": "noul",
+        "instructions": f"La transcription contient-elle une indication sur {sujet} ?",
+        "criteria": {
+            "true": f"Le visiteur s'exprime, même brièvement, sur {sujet}.",
+            "false": f"Rien dans la transcription ne renseigne sur {sujet}.",
+        },
+    }
 
 
 def questions(departement: str) -> dict[str, dict[str, Any]]:
-    """Les 5 questions, envoyées en un seul appel (objet indexé par nom de colonne)."""
+    """Les questions, envoyées en un seul appel : une par colonne, plus une `noul` de présence par score."""
     return {
+        "satisfaction" + PRESENT_SUFFIX: _present("sa satisfaction ou son appréciation de la sortie"),
+        "affluence" + PRESENT_SUFFIX: _present("le nombre de personnes croisées ou l'affluence sur le site"),
         "satisfaction": {
             "type": "score",
             "instructions": "Quelle satisfaction globale le visiteur exprime-t-il dans la conversation ?",
@@ -50,10 +72,11 @@ def questions(departement: str) -> dict[str, dict[str, Any]]:
         },
         "provenance": {
             "type": "choice",
-            "instructions": f"Le visiteur habite-t-il dans le département ({departement}) ou en dehors ?",
+            "instructions": f"Le visiteur habite-t-il dans le département ({departement}) ou en dehors ?" + _EXPLICITE,
             "criteria": {
                 "departement": f"Habite dans le département ({departement}).",
                 "hors_departement": f"Habite hors du département ({departement}), en France ou à l'étranger.",
+                MISSING: _MISSING_TXT,
             },
         },
         "transport": {
@@ -64,6 +87,7 @@ def questions(departement: str) -> dict[str, dict[str, Any]]:
                 "transport_en_commun": "Bus, car, train ou navette. "
                 "Exemple : « les horaires des bus ne sont pas pratiques ».",
                 "velo": "Vélo. Exemple : « pas pratique pour les vélos ».",
+                MISSING: _MISSING_TXT,
             },
         },
         "profil": {
@@ -74,9 +98,14 @@ def questions(departement: str) -> dict[str, dict[str, Any]]:
                 "famille": "En famille, avec des enfants ou des proches.",
                 "seul": "Seul.",
                 "couple": "En couple, à deux.",
+                MISSING: _MISSING_TXT,
             },
         },
     }
+
+
+def _present_dans_texte(answer: dict[str, Any]) -> bool:
+    return answer.get("type") == "noul" and isinstance(answer.get("noul"), int | float) and answer["noul"] >= NOUL_SEUIL
 
 
 def _confiant(answer: dict[str, Any], seuil: float) -> bool:
@@ -98,7 +127,8 @@ def parse(answers: dict[str, Any], departement: str, seuil: float = SEUIL_CONFIA
     out: dict[str, Any] = dict.fromkeys(COLUMNS)
     for col in SCORE_COLUMNS:
         a = answers.get(col) or {}
-        if a.get("type") == "score" and _confiant(a, seuil):
+        present = _present_dans_texte(answers.get(col + PRESENT_SUFFIX) or {})
+        if present and a.get("type") == "score" and _confiant(a, seuil):
             out[col] = _score(a, len(qs[col]["criteria"]))
     for col, options in CHOICE_OPTIONS.items():
         a = answers.get(col) or {}

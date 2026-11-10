@@ -169,7 +169,6 @@ def agregats(conn: sqlite3.Connection, debut: int | None, fin: int | None) -> li
     return conn.execute(
         f"""SELECT b.id AS borne_id, b.name, b.lat, b.lon,
                    COUNT(t.id) AS n_avis,
-                   SUM(i.status = 'ok') AS n_ok,
                    AVG(i.satisfaction) AS satisfaction, COUNT(i.satisfaction) AS n_satisfaction,
                    AVG(i.affluence) AS affluence, COUNT(i.affluence) AS n_affluence,
                    AVG(CASE i.provenance WHEN 'hors_departement' THEN 100.0 WHEN 'departement' THEN 0.0 END)

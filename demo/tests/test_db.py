@@ -56,7 +56,7 @@ def test_agregats(conn):
     db.set_inference(conn, old, "ok", {"satisfaction": 0}, None)
     rows = {r["borne_id"]: r for r in db.agregats(conn, now - 3600, now + 1)}
     p = rows["peuil"]
-    assert (p["n_avis"], p["n_ok"], p["satisfaction"], p["affluence"], p["part_hors"]) == (3, 2, 60.0, 90.0, 50.0)
+    assert (p["n_avis"], p["satisfaction"], p["affluence"], p["part_hors"]) == (3, 60.0, 90.0, 50.0)
     assert rows["montfort"]["n_avis"] == 0 and rows["montfort"]["satisfaction"] is None
     assert len(rows) == 5
     assert {r["borne_id"]: r for r in db.agregats(conn, None, None)}["peuil"]["n_avis"] == 4

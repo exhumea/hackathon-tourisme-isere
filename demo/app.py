@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import html
 import json
-import math
+import logging
 import os
 import sqlite3
 import time
@@ -25,22 +25,32 @@ import streamlit as st
 import worker
 from streamlit_folium import st_folium
 
-st.set_page_config(page_title="Borne ressenti · démo live", page_icon="🌲", layout="wide")
+st.set_page_config(page_title="⛰️ La borne qui écoute", page_icon="⛰️", layout="wide")
 
 PREP = os.environ.get("DEMO_PREP") == "1"
+log = logging.getLogger("app")
 HEARTBEAT_LOST_S = 5  # invariant 6
 NULL = "—"
 N_LATEST = 10
 
-# Palette (skill dataviz, palette de référence, mode clair)
 BLUE, RED, NEUTRAL, MUTED = "#2a78d6", "#e34948", "#f0efec", "#a3a29c"
-SEQ_LIGHT, SEQ_DARK = "#cde2fb", "#0d366b"
-INK, INK2 = "#0b0b0b", "#52514e"
+NO_DATA = "#b5b4ae"  # borne sans avis : remplissage neutre
+# Échelles 0..100 (arrêts répartis uniformément)
+SCALES = {
+    "satisfaction": ("#d73027", "#fc8d59", "#fee08b", "#91cf60", "#1a9850"),  # rouge → vert
+    "affluence": (BLUE, NEUTRAL, RED),  # calme → saturé
+    "provenance": ("#fde725", "#5ec962", "#21918c", "#3b528b", "#440154"),  # jaune → violet (viridis)
+}
+IGN_PLAN = (
+    "https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0"
+    "&LAYER=GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2&STYLE=normal&TILEMATRIXSET=PM&FORMAT=image/png"
+    "&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}"
+)
 
 st.markdown(
     """
 <style>
-.block-container { padding-top: 2rem; max-width: 100%; }
+.block-container { padding-top: 3.5rem; max-width: 100%; }
 .st-key-phone {
   max-width: 410px; margin: 0 auto; padding: 26px 14px 18px 14px;
   border: 11px solid #1b1b1d; border-radius: 44px; background: #fcfcfb;
@@ -53,13 +63,10 @@ st.markdown(
 .phone-head { display:flex; justify-content:space-between; align-items:center; margin-top: 6px;
   font-weight: 700; font-size: 1.05rem; color: #0b0b0b; }
 .phone-sub { color: #52514e; font-size: .8rem; }
-.phone-foot { color: #52514e; font-size: .72rem; text-align: center; border-top: 1px solid #e3e2de;
-  padding-top: 8px; }
+[data-testid="stColumn"]:has(.st-key-phone) { border-left: 1px solid #d6d5d0; padding-left: 2rem; }
 .badge { display:inline-block; padding: 1px 8px; border-radius: 999px; font-size: .75rem; font-weight: 600; }
 .badge-live { background:#e34948; color:#fff; }
 .badge-hist { background:#e8e7e3; color:#52514e; }
-.badge-all { background:#cde2fb; color:#184f95; }
-.badge-sim { background:#fff4d6; color:#7a5500; border: 1px solid #f0d58a; }
 .live-box { border: 1px solid #e3e2de; border-radius: 10px; padding: 12px 14px; min-height: 96px;
   background: #fff; font-size: 1.05rem; line-height: 1.5; color: #0b0b0b; }
 .live-box .partial { color: #8a8984; font-style: italic; }
@@ -87,12 +94,13 @@ def conn() -> sqlite3.Connection:
 
 
 @st.cache_data(show_spinner=False)
-def frequentations(mois: int) -> tuple[dict[str, reference.Frequentation | None], str | None]:
+def frequentations(mois: int) -> dict[str, reference.Frequentation | None]:
     try:
         compteurs = {b.id: b.compteur for b in TERR.bornes.values()}
-        return reference.frequentations(compteurs, mois), None
-    except (FileNotFoundError, KeyError, ValueError) as e:
-        return dict.fromkeys(TERR.bornes), str(e)
+        return reference.frequentations(compteurs, mois)
+    except (FileNotFoundError, KeyError, ValueError):
+        log.exception("fréquentation de référence indisponible (tooltip : « indisponible »)")
+        return dict.fromkeys(TERR.bornes)
 
 
 init_db()
@@ -265,12 +273,11 @@ def _mix(a: str, b: str, t: float) -> str:
 
 
 def color_for(crit: str, v: float) -> str:
-    """0..100 → couleur. Divergente (rouge = défavorable, gris au milieu) ; séquentielle pour la provenance."""
-    t = v / 100
-    if crit == "provenance":
-        return _mix(SEQ_LIGHT, SEQ_DARK, t)
-    low, high = (RED, BLUE) if crit == "satisfaction" else (BLUE, RED)
-    return _mix(low, NEUTRAL, t * 2) if t < 0.5 else _mix(NEUTRAL, high, (t - 0.5) * 2)  # noqa: PLR2004
+    """0..100 → couleur, interpolée entre les arrêts de l'échelle du critère."""
+    stops = SCALES[crit]
+    x = min(max(v, 0.0), 100.0) / 100 * (len(stops) - 1)
+    i = min(int(x), len(stops) - 2)
+    return _mix(stops[i], stops[i + 1], x - i)
 
 
 def legend_html(crit: str) -> str:
@@ -283,17 +290,14 @@ def legend_html(crit: str) -> str:
     return (
         f'<div class="legend-bar" style="background:linear-gradient(90deg,{stops})"></div>'
         f'<div class="legend-row"><span>{ends[0]}</span><span>{ends[1]}</span></div>'
-        '<div class="phone-sub" style="font-size:.72rem;margin-top:4px">Taille : fréquentation par demi-journée '
-        '(éco-compteur) <span class="badge badge-sim">simulé</span> · '
-        f'<span style="border:2px dashed {MUTED};border-radius:50%;display:inline-block;width:10px;'
-        'height:10px;vertical-align:middle"></span> sans avis</div>'
     )
 
 
 def _radius(freq: reference.Frequentation | None, vmax: float) -> float:
+    """Rayon proportionnel à la fréquentation (linéaire : l'écart entre bornes est accentué)."""
     if freq is None or vmax <= 0:
         return 8.0
-    return 7 + 18 * math.sqrt(freq.valeur / vmax)
+    return 5 + 25 * freq.valeur / vmax
 
 
 def _tooltip(agg: Any, crit: str, val: float | None, freq: reference.Frequentation | None) -> str:
@@ -312,7 +316,11 @@ CRIT_COLUMN = {"satisfaction": "satisfaction", "affluence": "affluence", "proven
 
 
 def build_map(aggs: list[Any], crit: str, freqs: dict[str, reference.Frequentation | None]) -> folium.Map:
-    m = folium.Map(tiles="OpenStreetMap")
+    m = folium.Map(tiles=None)
+    folium.TileLayer(IGN_PLAN, attr="© IGN Plan", name="Plan IGN", max_zoom=19).add_to(m)
+    m.get_root().header.add_child(  # type: ignore[attr-defined]
+        folium.Element("<style>.leaflet-control-attribution { font-size: 8px !important; }</style>")
+    )
     m.fit_bounds(
         [
             (min(a["lat"] for a in aggs), min(a["lon"] for a in aggs)),
@@ -325,17 +333,15 @@ def build_map(aggs: list[Any], crit: str, freqs: dict[str, reference.Frequentati
         val = a[CRIT_COLUMN[crit]]
         freq = freqs.get(a["borne_id"])
         tip = _tooltip(a, crit, val, freq)
-        style: dict[str, Any] = (
-            {"color": "#ffffff", "weight": 2, "fill_color": color_for(crit, val), "fill_opacity": 0.95}
-            if val is not None
-            else {"color": MUTED, "weight": 2, "dash_array": "4 4", "fill_color": "#ffffff", "fill_opacity": 0.05}
-        )
         folium.CircleMarker(
             location=(a["lat"], a["lon"]),
             radius=_radius(freq, vmax),
             tooltip=folium.Tooltip(tip, style="white-space: normal; width: 230px; font-size: 12px;"),
             popup=folium.Popup(tip, max_width=260),
-            **style,
+            color="#ffffff",
+            weight=2,
+            fill_color=color_for(crit, val) if val is not None else NO_DATA,
+            fill_opacity=0.95,
         ).add_to(m)
     return m
 
@@ -348,41 +354,35 @@ def _nav(action: str) -> None:
         nxt = periods.decaler(ss.win, 1)
         ss.win = None if periods.intervalle(nxt) >= periods.intervalle(cur) else nxt
     elif action == "live":
-        ss.win, ss.all_past = None, False
+        ss.win = None
 
 
-def window_controls() -> tuple[str, bool]:
-    """Retourne (demi-journée affichée, tout le passé ?) et affiche le badge."""
+def window_controls() -> str:
+    """Boutons ◀ / ▶ / Live et badge ; retourne la demi-journée affichée."""
     cur = periods.demi_journee(int(time.time()))
     if ss.win and periods.intervalle(ss.win) >= periods.intervalle(cur):
         ss.win = None
-    all_past = bool(ss.get("all_past"))
     c1, c2, c3 = st.columns([1, 1, 1.4])
-    c1.button("◀", key="prev", width="stretch", disabled=all_past, on_click=_nav, args=("prev",))
-    c2.button("▶", key="next", width="stretch", disabled=ss.win is None or all_past, on_click=_nav, args=("next",))
-    c3.button(
-        "● Live", key="live", width="stretch", disabled=ss.win is None and not all_past, on_click=_nav, args=("live",)
-    )
-    st.toggle("Tout le passé", key="all_past")
+    c1.button("◀", key="prev", width="stretch", on_click=_nav, args=("prev",))
+    c2.button("▶", key="next", width="stretch", disabled=ss.win is None, on_click=_nav, args=("next",))
+    c3.button("● Live", key="live", width="stretch", disabled=ss.win is None, on_click=_nav, args=("live",))
     dj = ss.win or cur
-    if ss.all_past:
-        badge = '<span class="badge badge-all">Tout le passé</span>'
-    elif ss.win is None:
+    if ss.win is None:
         badge = f'<span class="badge badge-live">● LIVE</span> <span class="phone-sub">{periods.libelle(dj)}</span>'
     else:
         badge = f'<span class="badge badge-hist">Historique</span> <span class="phone-sub">{periods.libelle(dj)}</span>'
     st.markdown(badge, unsafe_allow_html=True)
-    return dj, bool(ss.all_past)
+    return dj
 
 
 @st.fragment(run_every=1.0)
 def phone() -> None:
     now = datetime.now(periods.TZ)
     st.markdown(
-        f'<div class="phone-head"><span>🌲 Ressenti des visiteurs</span>'
-        f'<span class="phone-sub">{now:%H:%M}</span></div>',
+        f'<div class="phone-head"><span>⛰️ La borne qui écoute</span><span class="phone-sub">{now:%H:%M}</span></div>',
         unsafe_allow_html=True,
     )
+    dj = window_controls()
     crit = st.segmented_control(
         "Critère",
         list(CRITERES),
@@ -393,29 +393,16 @@ def phone() -> None:
         width="stretch",
         label_visibility="collapsed",
     )
-    dj, all_past = window_controls()
-    debut, fin = (None, None) if all_past else periods.intervalle(dj)
-    aggs = db.agregats(conn(), debut, fin)
-    freqs, err = frequentations(periods.mois(dj))
+    aggs = db.agregats(conn(), *periods.intervalle(dj))
+    freqs = frequentations(periods.mois(dj))
     st_folium(build_map(aggs, crit, freqs), height=330, use_container_width=True, returned_objects=[], key="map")
     st.markdown(legend_html(crit), unsafe_allow_html=True)
-    n = sum(a["n_avis"] for a in aggs)
-    pending = n - sum(a["n_ok"] or 0 for a in aggs)
-    sub = f"{n} avis dans la fenêtre" + (f" · {pending} non classé(s)" if pending else "")
-    st.markdown(f'<div class="phone-sub">{sub}</div>', unsafe_allow_html=True)
-    if err:
-        st.caption(f"⚠️ Fréquentation de référence indisponible : {err}")
-    st.markdown(
-        '<div class="phone-foot">Démo POC — avis anonymisés, enregistrement audio non conservé.</div>',
-        unsafe_allow_html=True,
-    )
 
 
 # --- mise en page -----------------------------------------------------------------
 
 col_b, col_f = st.columns([1.45, 1], gap="large")
 with col_b:
-    st.markdown("### 🛠️ Backend")
     st.selectbox(
         "Borne",
         list(TERR.bornes),
@@ -434,7 +421,5 @@ with col_b:
     st.markdown(f"#### Dernières lignes ({N_LATEST})")
     latest_panel()
 
-with col_f:
-    st.markdown("### 📱 Frontend")
-    with st.container(key="phone"):
-        phone()
+with col_f, st.container(key="phone"):
+    phone()
