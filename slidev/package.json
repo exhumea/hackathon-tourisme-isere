@@ -1,0 +1,17 @@
+{
+  "name": "hackathon-flux-slidev",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Présentation Slidev — La borne qui écoute (hackathon flux touristiques, Isère)",
+  "scripts": {
+    "dev": "slidev",
+    "build": "slidev build",
+    "export": "slidev export"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@slidev/cli": "^51.0.0",
+    "@slidev/theme-default": "^0.25.0"
+  }
+}

@@ -20,3 +20,8 @@ coverage.xml
 htmlcov/
 .lycheecache
 jscpd-report/
+
+# Node / Slidev
+node_modules/
+slidev/node_modules/
+slidev/dist/
