@@ -61,12 +61,15 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 2. **Arrêt automatique** : sans parole détectée par la VAD pendant **`SILENCE_STOP_S` = 15 s**,
    le worker termine l'enregistrement comme sur un `stop` (oubli du bouton, visiteur parti).
    Durée maximale d'un enregistrement : `MAX_DUREE_S` = 120 s.
-3. `live_state.status` suit le cycle `idle → recording → transcribing → classifying → idle`,
-   sans saut en arrière au sein d'un enregistrement.
-4. **Au démarrage**, le worker remet `live_state` à `idle`, marque toutes les commandes
+3. **Transcript vide** : si la transcription finale est vide (`transcript.strip() == ""`,
+   ex. arrêt auto sans parole), **aucun appel à Jev et rien n'est inséré** en base ; le
+   worker repasse directement à `idle` (message « rien capté » dans `live_state`).
+4. `live_state.status` suit le cycle `idle → recording → transcribing → classifying → idle`,
+   sans saut en arrière au sein d'un enregistrement (le cas 3 saute `classifying`).
+5. **Au démarrage**, le worker remet `live_state` à `idle`, marque toutes les commandes
    non consommées comme consommées (commandes périmées), et passe les avis `pending`
    restés orphelins en `error` (re-classifiables).
-5. `live_state.updated_at` est rafraîchi au moins toutes les 2 s par le worker
+6. `live_state.updated_at` est rafraîchi au moins toutes les 2 s par le worker
    (heartbeat). Si l'UI voit un heartbeat de plus de 5 s → bandeau « worker arrêté ».
 
 ## 3. Speech-to-text (worker)
@@ -83,7 +86,8 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
   - Sans le stretch : l'enregistrement est transcrit une fois au stop.
 - **Fin d'enregistrement** : bouton stop, ou arrêt automatique après 15 s de silence (§2).
   Transcription finale = concaténation des chunks validés, plus le dernier chunk. Pas de
-  seconde passe complète, pour garder une latence courte au stop.
+  seconde passe complète, pour garder une latence courte au stop. Transcript vide → ni
+  Jev ni insertion (§2, invariant 3).
 - **Unité** : push-to-talk. 1 enregistrement = 1 conversation en open mic = 1 avis.
 - **Audio** : jamais écrit sur disque (buffers en mémoire, libérés après transcription).
 
@@ -109,6 +113,7 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 | `transport` | Choice | voiture, transport_en_commun, velo | moyen de transport, **uniquement si mention explicite, pas de déduction**. Exemples : « le parking est plein » → voiture ; « pas pratique pour les vélos » → velo ; « les horaires des bus ne sont pas pratiques » → transport_en_commun |
 | `profil` | Choice | groupe_amis, famille, seul, couple | composition du groupe, **uniquement si explicite** |
 
+- **Pré-condition** : Jev n'est appelé que sur un transcript non vide (§2, invariant 3).
 - **Statut** : l'avis est inséré `classif_status='pending'` dès le stop (il s'affiche
   immédiatement), puis passe à `ok` ou `error`. Si `error` : bouton « Re-classifier » dans la
   colonne Backend.
@@ -274,7 +279,8 @@ de salle (projecteur, réseau de la salle), chacun contre la Définition de fait
 | Critère | Vérifiable |
 |---|---|
 | Latence bout en bout | énoncé de 20 s → avis visible, classé, en < 10 s après le stop |
-| Arrêt automatique | 15 s de silence → enregistrement terminé et avis créé |
+| Arrêt automatique | 15 s de silence → enregistrement terminé ; avis créé seulement si du texte a été capté |
+| Transcript vide | enregistrement sans parole → aucune ligne dans `avis`, aucun appel Jev |
 | Partiels live (si stretch 1) | premier partiel affiché < 3 s après le début de la parole |
 | Classification | ≥ 8 avis sur 10 classés `ok`, valeurs jugées correctes par l'équipe |
 | No guess | un avis sans mention de transport → `transport` NULL, affiché `—` |
