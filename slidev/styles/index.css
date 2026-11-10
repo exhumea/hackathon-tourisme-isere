@@ -1,0 +1,456 @@
+/* ============================================================
+   La borne qui écoute — custom Slidev skin
+   Montagnard · sérieux · dynamique
+   ============================================================ */
+
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/fraunces';
+
+:root {
+  --ink: #0c1d28;
+  --slate: #1b3a4b;
+  --pine: #2c6a59;
+  --glacier: #5aadd1;
+  --ice: #e3f1f7;
+  --copper: #d97845;
+  --snow: #f4f8fa;
+  --paper: #ffffff;
+  --line: #dbe6ec;
+  --muted: #5f7583;
+
+  --slidev-theme-primary: #2c6a59;
+  --slidev-theme-secondary: #d97845;
+}
+
+/* ---------- Base ---------- */
+
+.slidev-layout {
+  padding: 2.4rem 3.4rem 3.6rem;
+  background-color: var(--snow);
+  background-image:
+    radial-gradient(900px 420px at 8% -10%, rgba(90, 173, 209, 0.12), transparent 60%),
+    radial-gradient(700px 380px at 100% 110%, rgba(44, 106, 89, 0.10), transparent 60%);
+  color: var(--ink);
+  font-family: 'Manrope Variable', 'Segoe UI', system-ui, sans-serif;
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3,
+.slidev-layout h4 {
+  font-family: 'Manrope Variable', 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+
+.slidev-layout h1 {
+  font-weight: 760;
+  animation: deck-rise 0.45s ease-out both;
+}
+
+.slidev-layout h2 {
+  color: var(--slate);
+  font-weight: 640;
+}
+
+.slidev-layout h3 {
+  color: var(--pine);
+  font-weight: 720;
+}
+
+.slidev-layout strong {
+  color: var(--slate);
+}
+
+/* ---------- Centrage vertical du contenu ---------- */
+
+.slidev-layout.default:not(.closing) {
+  display: flex;
+  flex-direction: column;
+}
+
+.slidev-layout.default:not(.closing) > h1,
+.slidev-layout.default:not(.closing) > :last-child {
+  margin-bottom: auto;
+}
+
+.slidev-layout.two-columns {
+  align-content: center;
+}
+
+.slidev-layout code {
+  background: var(--ice);
+  color: #1e4c60;
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  font-size: 0.78em;
+  font-weight: 600;
+}
+
+/* ---------- Kicker / labels ---------- */
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--pine);
+  animation: deck-rise 0.45s ease-out both;
+}
+
+.kicker::before {
+  content: '';
+  width: 1.9rem;
+  height: 2px;
+  background: var(--copper);
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 24px 45px -34px rgba(12, 29, 40, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: deck-rise 0.5s ease-out both;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 28px 50px -30px rgba(12, 29, 40, 0.45);
+}
+
+.card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 760;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.card:nth-child(2) { animation-delay: 0.06s; }
+.card:nth-child(3) { animation-delay: 0.12s; }
+.card:nth-child(4) { animation-delay: 0.18s; }
+.card:nth-child(5) { animation-delay: 0.24s; }
+.card:nth-child(6) { animation-delay: 0.30s; }
+
+/* ---------- Citation ---------- */
+
+.slidev-layout blockquote {
+  border-left: 3px solid var(--copper);
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--slate);
+  font-family: 'Fraunces Variable', Georgia, serif;
+  font-size: 1.3rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+/* ---------- Stats ---------- */
+
+.stat-row {
+  display: flex;
+  gap: 2.6rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.stat strong {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--slate);
+}
+
+.stat span {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Pipeline (démo) ---------- */
+
+.pipeline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.pipeline span {
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  background: var(--ice);
+  color: #17465a;
+  font-size: 0.86rem;
+  font-weight: 720;
+}
+
+.pipeline i {
+  color: var(--copper);
+  font-style: normal;
+  font-weight: 800;
+}
+
+/* ---------- Couverture ---------- */
+
+.slidev-layout.cover {
+  padding: 0;
+  background: linear-gradient(150deg, #07131c 0%, #12303f 52%, #1a4657 100%);
+  color: var(--snow);
+  overflow: hidden;
+}
+
+.slidev-layout.cover::before {
+  content: '';
+  position: absolute;
+  inset: -6%;
+  background: url('/topo.svg') center / cover no-repeat;
+  opacity: 0.16;
+  animation: topo-drift 26s ease-in-out infinite alternate;
+}
+
+.slidev-layout.cover::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40%;
+  background: url('/mountains.svg') center bottom / 100% 100% no-repeat;
+  opacity: 0.95;
+}
+
+.slidev-layout.cover .my-auto {
+  position: relative;
+  z-index: 1;
+  padding: 3.2rem 4.6rem;
+}
+
+.slidev-layout.cover h1 {
+  color: #ffffff;
+  font-size: 4.1rem;
+  font-weight: 800;
+  line-height: 1.02;
+  margin: 0.2rem 0 0.7rem;
+}
+
+.slidev-layout.cover h2 {
+  color: var(--glacier);
+  font-size: 1.45rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.slidev-layout.cover .cover-accent {
+  width: 3.6rem;
+  height: 3px;
+  background: var(--copper);
+  margin-bottom: 1.4rem;
+}
+
+.slidev-layout.cover .cover-meta {
+  color: rgba(244, 248, 250, 0.66);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---------- Clôture ---------- */
+
+.slidev-layout.closing {
+  background: linear-gradient(150deg, #0b1c26 0%, #173b4c 100%);
+  color: var(--snow);
+  text-align: center;
+}
+
+.slidev-layout.closing h1,
+.slidev-layout.closing h2 {
+  color: #ffffff;
+}
+
+.slidev-layout.closing h1 {
+  font-size: 3.4rem;
+  margin-bottom: 1.6rem;
+}
+
+.slidev-layout.closing strong {
+  color: #ffffff;
+}
+
+.slidev-layout.closing .kicker {
+  color: var(--glacier);
+}
+
+.slidev-layout.closing .kicker::before {
+  background: var(--copper);
+}
+
+/* ---------- Deux colonnes ---------- */
+
+.slidev-layout.two-cols {
+  gap: 2.6rem;
+}
+
+/* ---------- Footer global ---------- */
+
+.deck-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  height: 3px;
+  background: rgba(12, 29, 40, 0.06);
+}
+
+.deck-progress span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--pine), var(--glacier) 62%, var(--copper));
+  transition: width 0.4s ease;
+}
+
+.deck-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 1.5rem;
+  border-top: 1px solid rgba(12, 29, 40, 0.08);
+  background: rgba(244, 248, 250, 0.78);
+  backdrop-filter: blur(6px);
+  color: var(--muted);
+  font-family: 'Manrope Variable', 'Segoe UI', system-ui, sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.05em;
+}
+
+.deck-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--slate);
+  font-weight: 760;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.deck-footer__mark {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--copper);
+  transform: rotate(45deg);
+}
+
+.deck-footer__team {
+  padding: 0.1rem 0.45rem;
+  border: 1px solid rgba(44, 106, 89, 0.35);
+  border-radius: 999px;
+  background: rgba(44, 106, 89, 0.08);
+  color: var(--pine);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+
+.deck-footer__stages {
+  display: flex;
+  gap: 0.95rem;
+  white-space: nowrap;
+}
+
+.deck-footer__stages span {
+  opacity: 0.42;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.deck-footer__stages span.active {
+  opacity: 1;
+  color: var(--pine);
+  font-weight: 760;
+}
+
+.deck-footer__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+}
+
+.deck-footer__date {
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+
+.deck-footer__page {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes deck-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes topo-drift {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.06) translate3d(-1.5%, -1%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slidev-layout *,
+  .deck-footer * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media print {
+  .slidev-layout *,
+  .deck-footer * {
+    animation: none !important;
+  }
+}

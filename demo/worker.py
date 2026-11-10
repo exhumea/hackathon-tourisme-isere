@@ -44,7 +44,7 @@ LANG_MIN_PROB = float(os.environ.get("DEMO_LANG_MIN_PROB", "0.5"))
 
 # Hallucinations classiques de Whisper sur du silence ou du bruit.
 _HALLUCINATIONS = re.compile(
-    r"sous-titr|amara\.org|merci d'avoir regard|abonnez-vous|thanks for watching|untertitel", re.IGNORECASE
+    r"sous-titr|amara\.org|merci d'avoir regard|armée|abonnez-vous|thanks for watching|untertitel", re.IGNORECASE
 )
 
 log = logging.getLogger("worker")
