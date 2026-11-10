@@ -11,7 +11,8 @@ L'écran projeté a deux colonnes, séparées par un trait vertical :
 
 - à gauche, la partie technique : enregistrement, transcription live, dernières lignes de la base ;
 - à droite, l'app « La borne qui écoute » dans un mockup de téléphone, avec la carte des 5
-  bornes sur le plan IGN.
+  bornes sur le plan IGN (en niveaux de gris). Changer de critère ne recharge ni le fond de
+  carte ni la taille des cercles : seules leur couleur et leur tooltip changent.
   - La taille d'un cercle représente la fréquentation (éco-compteur, simulée).
   - Sa couleur représente le critère choisi : satisfaction (rouge → vert), affluence
     (bleu → rouge) ou part hors département (jaune → violet).
@@ -36,7 +37,7 @@ export OPENROUTER_API_KEY=sk-or-...       # clé OpenRouter (classeur Excel du S
 ```
 
 La clé doit être définie dans les **deux** terminaux : le worker classifie les nouveaux avis,
-et l'app appelle Jev elle-même quand on clique sur **Re-classifier**.
+et l'app appelle Jev elle-même pour **Re-classifier**, une correction ou une saisie manuelle.
 
 Les données de référence sont lues dans `data/ssp/` ou `../onyxia-data/`, le premier
 dossier présent étant retenu (fichier `Fréquentation/données_eco_compteurs_ENS.xlsx`).
@@ -56,6 +57,13 @@ uv run --project demo streamlit run demo/app.py    # écran du show (http://loca
 2. **■ Stop**, ou arrêt automatique après **15 s sans parole** (durée maximale : 120 s).
 3. La transcription apparaît en base (`⏳ en cours`), puis elle est classifiée (`✅ ok`).
    En cas d'échec Jev (`⚠️ erreur`), cliquer sur **Re-classifier #id**.
+4. Cliquer sur une ligne du tableau pour la détailler. Son texte est modifiable :
+   **💾 Mettre à jour et re-classifier** enregistre la correction en base et relance Jev.
+5. Sans ligne sélectionnée (**✖ Fermer**), un avis peut être saisi à la main, sans audio :
+   **✍️ Ajouter l'avis et classifier** le crée sur la borne choisie.
+
+Dans l'app, ◀ / ▶ à droite de la date naviguent entre les demi-journées ; le badge **LIVE**
+indique la demi-journée en cours.
 
 Un enregistrement sans parole ne crée **aucune ligne** et ne déclenche pas d'appel à Jev
 (« rien capté »). Si le worker ne donne plus signe de vie depuis 5 s, un bandeau

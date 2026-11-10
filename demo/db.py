@@ -147,6 +147,18 @@ def set_inference(conn: sqlite3.Connection, transcription_id: int, status: str, 
     )
 
 
+def update_texte(conn: sqlite3.Connection, transcription_id: int, texte: str) -> None:
+    """Texte corrigé à la main : l'ancienne inférence est supprimée (la ligne repasse « en cours »)."""
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        conn.execute("UPDATE transcription SET texte = ? WHERE id = ?", (texte, transcription_id))
+        conn.execute("DELETE FROM inference_avis WHERE transcription_id = ?", (transcription_id,))
+    except BaseException:
+        conn.execute("ROLLBACK")
+        raise
+    conn.execute("COMMIT")
+
+
 def delete_transcription(conn: sqlite3.Connection, transcription_id: int) -> None:
     conn.execute("DELETE FROM transcription WHERE id = ?", (transcription_id,))  # l'inférence suit (CASCADE)
 

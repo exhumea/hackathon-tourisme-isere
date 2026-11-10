@@ -25,7 +25,7 @@ import streamlit as st
 import worker
 from streamlit_folium import st_folium
 
-st.set_page_config(page_title="⛰️ La borne qui écoute", page_icon="⛰️", layout="wide")
+st.set_page_config(page_title="La borne qui écoute", page_icon="⛰️", layout="wide")
 
 PREP = os.environ.get("DEMO_PREP") == "1"
 log = logging.getLogger("app")
@@ -51,11 +51,15 @@ st.markdown(
     """
 <style>
 .block-container { padding-top: 3.5rem; max-width: 100%; }
-.st-key-phone {
-  max-width: 410px; margin: 0 auto; padding: 26px 14px 18px 14px;
-  border: 11px solid #1b1b1d; border-radius: 44px; background: #fcfcfb;
-  box-shadow: 0 18px 40px rgba(0,0,0,.25); position: relative; gap: .55rem;
+.st-key-phone {  /* format smartphone : 390 x 844 px d'écran */
+  width: 412px; height: 866px; flex: none; margin: 0 auto; padding: 34px 12px 16px 12px; overflow: hidden;
+  border: 11px solid #1b1b1d; border-radius: 48px; background: #fcfcfb;
+  box-shadow: 0 18px 40px rgba(0,0,0,.25); position: relative; gap: .5rem;
 }
+.st-key-nav button { min-height: 0; padding: 0 .45rem; line-height: 1.4; }
+.spin { display:inline-block; width:12px; height:12px; margin-right:6px; vertical-align: middle;
+  border: 2px solid #d6d5d0; border-top-color: #2a78d6; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .st-key-phone::before {
   content: ""; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
   width: 110px; height: 22px; background: #1b1b1d; border-radius: 12px;
@@ -107,6 +111,10 @@ init_db()
 ss = st.session_state
 ss.setdefault("win", None)  # None = demi-journée en cours (live) ; sinon clé de demi-journée
 ss.setdefault("expect", None)  # (statut attendu, instant) juste après un clic
+ss.setdefault("detail_id", None)  # ligne sélectionnée dans le tableau (clic)
+ss.setdefault("table_ver", 0)  # change la clé du tableau : efface une sélection devenue obsolète
+ss.setdefault("to_classify", None)  # transcription saisie à la main, à classifier (avec spinner)
+ss.setdefault("flash", None)
 
 
 def fmt_ts(ts: int) -> str:
@@ -122,6 +130,7 @@ STATUS_UI = {
     "classifying": (BLUE, "Classification Jev"),
     "offline": (MUTED, "Worker arrêté"),
 }
+BUSY = ("transcribing", "classifying")
 
 
 def worker_status() -> tuple[str, Any]:
@@ -157,10 +166,18 @@ def live_panel() -> None:
     elif exp:
         ss.expect = None
     future = PREP and (simulated_ts() or 0) > time.time()
+    c1, c2 = st.columns([2, 1], vertical_alignment="bottom")
+    c1.selectbox(
+        "Borne",
+        list(TERR.bornes),
+        format_func=lambda k: f"{TERR.bornes[k].name} · {TERR.bornes[k].commune} ({TERR.bornes[k].id_ens})",
+        key="borne",
+        disabled=status == "recording",
+    )
     if status == "recording":
-        st.button("■  Stop", type="primary", width="stretch", key="btn_stop", on_click=_send, args=("stop",))
+        c2.button("■  Stop", type="primary", width="stretch", key="btn_stop", on_click=_send, args=("stop",))
     else:
-        st.button(
+        c2.button(
             "●  Enregistrer",
             type="primary",
             width="stretch",
@@ -174,10 +191,12 @@ def live_panel() -> None:
     if future:
         st.warning("Date simulée dans le futur : refusée.")
     color, label = STATUS_UI.get(status, (MUTED, status))
+    spin = '<span class="spin"></span>' if status in BUSY else ""
     lang = f" · langue : <b>{html.escape(live['langue'])}</b>" if live["langue"] else ""
     msg = f" — {html.escape(live['message'])}" if live["message"] and status != "offline" else ""
     st.markdown(
-        f'<div class="status"><span class="dot" style="background:{color}"></span><b>{label}</b>{lang}{msg}</div>',
+        f'<div class="status"><span class="dot" style="background:{color}"></span>{spin}<b>{label}</b>{lang}{msg}'
+        "</div>",
         unsafe_allow_html=True,
     )
     committed = html.escape(live["committed_text"] or "")
@@ -201,6 +220,71 @@ def _reclassify(tid: int) -> None:
 
 def _delete(tid: int) -> None:
     db.delete_transcription(conn(), tid)
+    ss.detail_id = None
+
+
+def _close_detail() -> None:
+    ss.detail_id = None
+    ss.table_ver += 1  # nouvelle clé : efface aussi la sélection affichée dans le tableau
+
+
+def _on_select(ids: list[int]) -> None:
+    sel = ss[f"table_{ss.table_ver}"].selection
+    rows = sel.rows or [row for row, _ in sel.cells]  # clic sur la case de ligne ou sur n'importe quelle cellule
+    ss.detail_id = ids[rows[0]] if rows else None
+
+
+def _save_text(tid: int | None) -> None:
+    """Texte saisi à la main : met à jour la transcription (ou en crée une), puis la classification suit."""
+    key = f"edit_{tid}" if tid is not None else "new_text"
+    texte = ss[key].strip()
+    if not texte:
+        ss.flash = "Texte vide : rien n'est enregistré."
+        return
+    try:
+        if tid is None:  # saisie sans audio : nouvel avis sur la borne sélectionnée
+            tid = db.insert_transcription(
+                conn(),
+                event_ts=simulated_ts() or int(time.time()),
+                borne_id=ss.borne,
+                texte=texte,
+                langue=None,
+                is_init=PREP,
+            )
+            ss.new_text = ""
+        else:
+            db.update_texte(conn(), tid, texte)
+    except ValueError as e:
+        ss.flash = str(e)
+        return
+    ss.detail_id = tid
+    ss.to_classify = tid
+
+
+def detail_panel(rows: list[Any]) -> None:
+    """Détail de la ligne cliquée, avec texte modifiable ; sans sélection, saisie d'un avis sans audio."""
+    if ss.flash:
+        st.warning(ss.flash)
+        ss.flash = None
+    if ss.to_classify is not None:
+        with st.spinner(f"Classification Jev de #{ss.to_classify}…"):
+            worker.classify_transcription(conn(), ss.to_classify, TERR)
+        ss.to_classify = None
+    r = next((r for r in rows if r["id"] == ss.detail_id), None)
+    if r is None:
+        st.caption("Cliquer sur une ligne du tableau pour la détailler. Ou saisir un avis à la main (sans audio) :")
+        st.text_area("Saisie manuelle", key="new_text", height=90, label_visibility="collapsed")
+        st.button("✍️ Ajouter l'avis et classifier", key="add", on_click=_save_text, args=(None,))
+        return
+    tid = r["id"]
+    st.caption(f"#{tid} · {r['borne_name']} · langue {r['langue'] or NULL}" + (" · init" if r["is_init"] else ""))
+    st.text_area("Transcription", value=r["texte"], key=f"edit_{tid}", height=90, label_visibility="collapsed")
+    c1, c2, c3 = st.columns([2, 1, 1])
+    c1.button("💾 Mettre à jour et re-classifier", key="save", on_click=_save_text, args=(tid,), width="stretch")
+    c2.button("🗑 Supprimer", key="del", on_click=_delete, args=(tid,), width="stretch")
+    c3.button("✖ Fermer", key="close", on_click=_close_detail, width="stretch")
+    if r["jev_raw"]:
+        st.json(json.loads(r["jev_raw"]), expanded=False)
 
 
 @st.fragment(run_every=1.0)
@@ -208,7 +292,12 @@ def latest_panel() -> None:
     rows = db.latest(conn(), N_LATEST)
     if not rows:
         st.info("Aucun avis en base pour l'instant.")
+        detail_panel(rows)
         return
+    ids = [r["id"] for r in rows]
+    if ss.get("table_ids") != ids:  # nouvelles lignes : les index de sélection ne sont plus valables
+        ss.table_ids = ids
+        ss.table_ver += 1
     df = pd.DataFrame(
         [
             {
@@ -230,6 +319,9 @@ def latest_panel() -> None:
         df,
         hide_index=True,
         width="stretch",
+        key=f"table_{ss.table_ver}",
+        on_select=lambda: _on_select(ids),
+        selection_mode=["single-row", "single-cell"],
         column_config={
             "#": st.column_config.NumberColumn(width=40),
             "heure": st.column_config.TextColumn(width=90),
@@ -242,15 +334,7 @@ def latest_panel() -> None:
         c1, c2 = st.columns([3, 1])
         c1.caption(f"⚠️ #{r['id']} : {html.escape(str(err)[:140])}")
         c2.button(f"Re-classifier #{r['id']}", key=f"recl_{r['id']}", on_click=_reclassify, args=(r["id"],))
-    ids = [r["id"] for r in rows]
-    c1, c2 = st.columns([3, 1])
-    tid = c1.selectbox("Détail d'une ligne", ids, format_func=lambda i: f"#{i}", key="detail", index=0)
-    c2.button("🗑 Supprimer", key="del", on_click=_delete, args=(tid,), width="stretch")
-    r = next(r for r in rows if r["id"] == tid)
-    st.caption(f"#{tid} · {r['borne_name']} · langue {r['langue'] or NULL}" + (" · init" if r["is_init"] else ""))
-    st.markdown(f"> {html.escape(r['texte'])}")
-    if r["jev_raw"]:
-        st.json(json.loads(r["jev_raw"]), expanded=False)
+    detail_panel(rows)
 
 
 # --- colonne Frontend (mockup téléphone) ------------------------------------------
@@ -315,19 +399,25 @@ def _tooltip(agg: Any, crit: str, val: float | None, freq: reference.Frequentati
 CRIT_COLUMN = {"satisfaction": "satisfaction", "affluence": "affluence", "provenance": "part_hors"}
 
 
-def build_map(aggs: list[Any], crit: str, freqs: dict[str, reference.Frequentation | None]) -> folium.Map:
+def base_map() -> folium.Map:
+    """Fond de carte fixe (Plan IGN en niveaux de gris, cadré sur les bornes) : jamais rechargé."""
     m = folium.Map(tiles=None)
     folium.TileLayer(IGN_PLAN, attr="© IGN Plan", name="Plan IGN", max_zoom=19).add_to(m)
     m.get_root().header.add_child(  # type: ignore[attr-defined]
-        folium.Element("<style>.leaflet-control-attribution { font-size: 8px !important; }</style>")
+        folium.Element(
+            "<style>.leaflet-tile-pane { filter: grayscale(1) brightness(1.05) contrast(.9); }"
+            ".leaflet-control-attribution { font-size: 8px !important; }</style>"
+        )
     )
-    m.fit_bounds(
-        [
-            (min(a["lat"] for a in aggs), min(a["lon"] for a in aggs)),
-            (max(a["lat"] for a in aggs), max(a["lon"] for a in aggs)),
-        ],
-        padding=(30, 30),
-    )
+    lats = [b.lat for b in TERR.bornes.values()]
+    lons = [b.lon for b in TERR.bornes.values()]
+    m.fit_bounds([(min(lats), min(lons)), (max(lats), max(lons))], padding=(40, 40))
+    return m
+
+
+def bornes_layer(aggs: list[Any], crit: str, freqs: dict[str, reference.Frequentation | None]) -> folium.FeatureGroup:
+    """Couche des bornes : seule partie mise à jour quand le critère ou la fenêtre change."""
+    fg = folium.FeatureGroup(name="bornes")
     vmax = max((f.valeur for f in freqs.values() if f), default=0.0)
     for a in aggs:
         val = a[CRIT_COLUMN[crit]]
@@ -342,36 +432,31 @@ def build_map(aggs: list[Any], crit: str, freqs: dict[str, reference.Frequentati
             weight=2,
             fill_color=color_for(crit, val) if val is not None else NO_DATA,
             fill_opacity=0.95,
-        ).add_to(m)
-    return m
+        ).add_to(fg)
+    return fg
 
 
-def _nav(action: str) -> None:
+def _nav(step: int) -> None:
     cur = periods.demi_journee(int(time.time()))
-    if action == "prev":
-        ss.win = periods.decaler(ss.win or cur, -1)
-    elif action == "next" and ss.win:
-        nxt = periods.decaler(ss.win, 1)
-        ss.win = None if periods.intervalle(nxt) >= periods.intervalle(cur) else nxt
-    elif action == "live":
-        ss.win = None
+    nxt = periods.decaler(ss.win or cur, step)
+    ss.win = None if periods.intervalle(nxt) >= periods.intervalle(cur) else nxt
 
 
 def window_controls() -> str:
-    """Boutons ◀ / ▶ / Live et badge ; retourne la demi-journée affichée."""
+    """Date affichée, avec ◀ / ▶ à sa droite ; retourne la demi-journée. Plus de ▶ possible = live."""
     cur = periods.demi_journee(int(time.time()))
     if ss.win and periods.intervalle(ss.win) >= periods.intervalle(cur):
         ss.win = None
-    c1, c2, c3 = st.columns([1, 1, 1.4])
-    c1.button("◀", key="prev", width="stretch", on_click=_nav, args=("prev",))
-    c2.button("▶", key="next", width="stretch", disabled=ss.win is None, on_click=_nav, args=("next",))
-    c3.button("● Live", key="live", width="stretch", disabled=ss.win is None, on_click=_nav, args=("live",))
     dj = ss.win or cur
-    if ss.win is None:
-        badge = f'<span class="badge badge-live">● LIVE</span> <span class="phone-sub">{periods.libelle(dj)}</span>'
-    else:
-        badge = f'<span class="badge badge-hist">Historique</span> <span class="phone-sub">{periods.libelle(dj)}</span>'
-    st.markdown(badge, unsafe_allow_html=True)
+    with st.container(key="nav", horizontal=True, vertical_alignment="center", gap="small"):
+        badge = (
+            '<span class="badge badge-live">● LIVE</span>'
+            if ss.win is None
+            else '<span class="badge badge-hist">Historique</span>'
+        )
+        st.markdown(f'{badge} <span class="phone-sub">{periods.libelle(dj)}</span>', unsafe_allow_html=True)
+        st.button("◀", key="prev", type="tertiary", on_click=_nav, args=(-1,))
+        st.button("▶", key="next", type="tertiary", disabled=ss.win is None, on_click=_nav, args=(1,))
     return dj
 
 
@@ -395,7 +480,14 @@ def phone() -> None:
     )
     aggs = db.agregats(conn(), *periods.intervalle(dj))
     freqs = frequentations(periods.mois(dj))
-    st_folium(build_map(aggs, crit, freqs), height=330, use_container_width=True, returned_objects=[], key="map")
+    st_folium(
+        base_map(),
+        feature_group_to_add=bornes_layer(aggs, crit, freqs),
+        height=620,
+        use_container_width=True,
+        returned_objects=[],
+        key="map",
+    )
     st.markdown(legend_html(crit), unsafe_allow_html=True)
 
 
@@ -403,12 +495,6 @@ def phone() -> None:
 
 col_b, col_f = st.columns([1.45, 1], gap="large")
 with col_b:
-    st.selectbox(
-        "Borne",
-        list(TERR.bornes),
-        format_func=lambda k: f"{TERR.bornes[k].name} · {TERR.bornes[k].commune} ({TERR.bornes[k].id_ens})",
-        key="borne",
-    )
     if PREP:
         now = datetime.now(periods.TZ)
         c1, c2 = st.columns(2)

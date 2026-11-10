@@ -117,3 +117,15 @@ def test_lectures_concurrentes_sans_erreur(tmp_path):
     for t in threads:
         t.join()
     assert errors == []
+
+
+def test_texte_corrige_a_la_main(conn):
+    tid = _avis(conn, texte="pas content")
+    db.set_inference(conn, tid, "ok", {"satisfaction": 10.0}, None)
+    db.update_texte(conn, tid, "très content")
+    row = db.get_avis(conn, tid)
+    assert row["texte"] == "très content"
+    assert row["status"] is None  # à re-classifier
+    with pytest.raises(sqlite3.IntegrityError):
+        db.update_texte(conn, tid, "")
+    assert db.get_avis(conn, tid)["texte"] == "très content"  # rollback
