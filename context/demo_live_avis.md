@@ -37,7 +37,7 @@ Tout ce qui n'est pas MVP est **coupable sans regret** si le MVP n'est pas fini.
 
 Deux processus Python sur le laptop, qui communiquent **uniquement via SQLite** (mode WAL).
 
-```
+```text
  ┌──────────────── worker.py ────────────────┐        ┌──────────── app.py (Streamlit) ────────────┐
  │ micro (sounddevice 16 kHz mono)           │        │ Col. gauche « Backend »                    │
  │  → VAD (silero) → chunks                  │        │  - bouton push-to-talk + sélecteur borne   │
@@ -55,6 +55,7 @@ par session, donc un thread micro hébergé dans Streamlit est fragile. Le bouto
 écrit une commande dans la table `control`, que le worker lit environ toutes les 100 ms.
 
 **Invariants du couplage UI ↔ worker** (testés) :
+
 1. Le worker consomme les commandes **dans l'ordre d'`id`** et les marque `consumed=1`
    immédiatement. Un `start` reçu pendant un enregistrement est consommé et ignoré ; un
    `stop` reçu hors enregistrement aussi.
@@ -168,6 +169,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE bornes (                   -- chargée depuis bornes.yaml au démarrage
   id   TEXT PRIMARY KEY,                -- ex. 'bois_batie'
+  name TEXT NOT NULL,                   -- nom affiché de la borne
   lon  REAL NOT NULL,
   lat  REAL NOT NULL
 );
@@ -236,6 +238,7 @@ CREATE TABLE control (                  -- commandes UI → worker
 **Rafraîchissement** : `st.fragment(run_every=1s)` sur les zones live.
 
 ### Colonne gauche — « Backend »
+
 1. Sélecteur borne, bouton **● Enregistrer / ■ Stop**.
 2. Transcription live : statut du worker (bandeau si heartbeat perdu, indication de l'arrêt
    automatique), texte validé (noir) + partiel (gris), langue détectée.
@@ -244,6 +247,7 @@ CREATE TABLE control (                  -- commandes UI → worker
    dépliable, bouton supprimer (supprime la transcription, l'inférence suit en cascade).
 
 ### Colonne droite — « Frontend » (mockup téléphone)
+
 Conteneur Streamlit à clé (`st.container(key="phone")`), mis en forme en CSS (classe
 `.st-key-phone`) comme un cadre de téléphone d'environ 390 px.
 
@@ -313,7 +317,7 @@ de salle (projecteur, réseau de la salle), chacun contre la Définition de fait
 
 ## 14. Arborescence
 
-```
+```text
 demo/
   worker.py      # micro + VAD + STT + arrêt auto + appel Jev
   app.py         # Streamlit
@@ -326,6 +330,7 @@ demo/
   reference.py   # résolution data/ssp ou ../onyxia-data, fréquentation éco-compteurs (§6)
   tests/         # periods, mapping (réponse mockée), reference, agrégats, invariants §2
 ```
+
 Lancement : `python demo/worker.py` et `streamlit run demo/app.py`
 (`DEMO_PREP=1 streamlit run demo/app.py` pour la préparation).
 Dépendances : `faster-whisper`, `sounddevice`, `numpy`, `pandas`, `openpyxl`, `pyyaml`,
