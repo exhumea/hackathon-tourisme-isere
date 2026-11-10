@@ -64,6 +64,22 @@
   color: var(--slate);
 }
 
+/* ---------- Centrage vertical du contenu ---------- */
+
+.slidev-layout.default:not(.closing) {
+  display: flex;
+  flex-direction: column;
+}
+
+.slidev-layout.default:not(.closing) > h1,
+.slidev-layout.default:not(.closing) > :last-child {
+  margin-bottom: auto;
+}
+
+.slidev-layout.two-columns {
+  align-content: center;
+}
+
 .slidev-layout code {
   background: var(--ice);
   color: #1e4c60;
@@ -324,6 +340,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
