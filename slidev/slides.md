@@ -122,9 +122,9 @@ Un bouton · une conversation · aucun compte
 ### Un livre d'or audio
 
 <table class="text-sm" style="width: 100%; border-collapse: collapse;">
-  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Satisfaction</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d73027, #fc8d59, #fee08b, #91cf60, #1a9850);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>0 · insatisfait</span><span>100 · satisfait</span></div></td></tr>
-  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Affluence ressentie</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #2a78d6, #f0efec, #e34948);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>0 · personne</span><span>100 · trop de monde</span></div></td></tr>
-  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Provenance</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #fde725, #5ec962, #21918c, #3b528b, #440154);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>département</span><span>hors département</span></div></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Satisfaction</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d73027, #fc8d59, #fee08b, #91cf60, #1a9850);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>mécontent</span><span>satisfait</span></div></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Affluence ressentie</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #2a78d6, #f0efec, #e34948);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>personne</span><span>trop de monde</span></div></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Provenance</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #fde725, #5ec962, #21918c, #3b528b, #440154);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>excursionnistes / habitants</span><span>touristes</span></div></td></tr>
   <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Transport</td><td style="padding: 4px 8px;">voiture · transports en commun · vélo</td></tr>
   <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Profil</td><td style="padding: 4px 8px;">seul · couple · famille · groupe d'amis</td></tr>
 </table>
@@ -322,6 +322,32 @@ Ce que l'on peut faire avec ces avis, en 2 minutes :
 
 Le message : ces données ne servent pas qu'à un rapport. Elles alimentent des outils
 de pilotage au quotidien.
+-->
+
+---
+theme: default
+layout: cover
+class: cover
+---
+
+<div class="kicker">Hackathon DGE · Isère 2026</div>
+
+<div class="cover-accent"></div>
+
+# Merci pour votre attention
+
+## La borne vous écoute pour les questions
+
+<div class="cover-meta pt-12">
+Virginie, Emmanuel, Lily Rose, Raphaël, Gaspard, Etienne
+</div>
+
+<!--
+NOTES ORALES — accueil (15 s)
+
+« Bonjour. Nous allons vous présenter La borne qui écoute : un livre d'or
+numérique pour les sites touristiques. L'idée tient en une phrase : arrêter de
+seulement compter les visiteurs, et commencer à les écouter. »
 -->
 
 ---
