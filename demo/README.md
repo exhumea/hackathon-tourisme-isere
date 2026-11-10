@@ -92,7 +92,7 @@ La base est `data/demo.db`, à la racine du dépôt (gitignorée). **En fin de h
 | Couper les partiels live (stretch 1) | `python demo/worker.py --no-partiels` |
 | Répéter sans micro | `python demo/worker.py --simulate a.wav b.wav` (un fichier par enregistrement) |
 | Autre base | `DEMO_DB=/chemin/demo.db` (pour les deux processus) |
-| Seuil de confiance Jev (NULL en dessous) | `SEUIL_CONFIANCE=0.6` (à fixer au jour 1) |
+| Seuil de confiance Jev (NULL en dessous) | `SEUIL_CONFIANCE=0.4` (à fixer au jour 1) |
 | Modèle Jev | `JEV_MODEL=typesafe/jev-1.14` (défaut), `JEV_TIMEOUT_S=20` |
 | Langues candidates / défaut | `DEMO_LANGS=fr,en,de,it,nl,es`, `DEMO_DEFAULT_LANG=fr` |
 

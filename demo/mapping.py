@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-SEUIL_CONFIANCE = float(os.environ.get("SEUIL_CONFIANCE", "0.6"))  # à fixer au jour 1 sur des avis réels
+SEUIL_CONFIANCE = float(os.environ.get("SEUIL_CONFIANCE", "0.4"))  # à fixer au jour 1 sur des avis réels
 
 SCORE_COLUMNS = ("satisfaction", "affluence")
 CHOICE_OPTIONS: dict[str, tuple[str, ...]] = {
@@ -23,11 +23,13 @@ CHOICE_OPTIONS: dict[str, tuple[str, ...]] = {
     "profil": ("groupe_amis", "famille", "seul", "couple"),
 }
 COLUMNS = (*SCORE_COLUMNS, *CHOICE_OPTIONS)
-MISSING = "missing"
+MISSING = "aucune_information"
 PRESENT_SUFFIX = "_present"  # question noul : l'information du score est-elle dans la transcription ?
 NOUL_SEUIL = 0.5
 
-_MISSING_TXT = "La transcription ne contient pas cette information, ou pas assez clairement pour trancher."
+_MISSING_TXT = (
+    "La transcription ne contient aucune information pertinente sur le sujet, ou pas assez clairement pour trancher."
+)
 
 _EXPLICITE = f" Uniquement si le visiteur le dit explicitement ; sinon, réponds « {MISSING} »."
 
@@ -72,10 +74,19 @@ def questions(departement: str) -> dict[str, dict[str, Any]]:
         },
         "provenance": {
             "type": "choice",
-            "instructions": f"Le visiteur habite-t-il dans le département ({departement}) ou en dehors ?" + _EXPLICITE,
+            "instructions": (
+                f"Le visiteur habite-t-il vraisemblablement dans le coin / le département"
+                f"({departement}) ou bien en dehors (il vient de loin, en dehors de France, ou un autre département) ?"
+                " Pour t'aider tu peux réfléchir en deux temps : 1/ est-ce qu'il y a une information"
+                " sur un lieu géographique qui se rapporte à la résidence de l'interlocuteur ou des personnes dénigrées"
+                " puis 2/ est-ce que ce lieu est dans la zone géographique autour du département"
+                f" 3/ si la personne critique les gens pas du coin tu peux inférer qu'il est du coin." + _EXPLICITE
+            ),
             "criteria": {
-                "departement": f"Habite dans le département ({departement}).",
-                "hors_departement": f"Habite hors du département ({departement}), en France ou à l'étranger.",
+                "departement": f"Habite DANS le coin / le département ({departement}).",
+                "hors_departement": (
+                    f"Habite à l'étranger, ou alors en France mais HORS du coin / du département ({departement})."
+                ),
                 MISSING: _MISSING_TXT,
             },
         },
@@ -83,10 +94,15 @@ def questions(departement: str) -> dict[str, dict[str, Any]]:
             "type": "choice",
             "instructions": "Quel moyen de transport le visiteur a-t-il utilisé pour venir ?" + _EXPLICITE,
             "criteria": {
-                "voiture": "Voiture, moto ou covoiturage. Exemple : « le parking est plein ».",
-                "transport_en_commun": "Bus, car, train ou navette. "
-                "Exemple : « les horaires des bus ne sont pas pratiques ».",
-                "velo": "Vélo. Exemple : « pas pratique pour les vélos ».",
+                "voiture": (
+                    "Voiture, moto ou covoiturage.Exemple : « le parking est plein », « compliqué de se garer »."
+                ),
+                "transport_commun": (
+                    "Bus, car, train ou navette. Exemple : « les horaires des bus ne sont pas pratiques »."
+                ),
+                "velo": (
+                    "Vélo ou mobilité douce. Exemple : « pas pratique pour les vélos » ou « j'ai crevé sur la route »."
+                ),
                 MISSING: _MISSING_TXT,
             },
         },

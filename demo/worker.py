@@ -179,6 +179,7 @@ class Transcriber:
             vad_filter=False,
             condition_on_previous_text=False,
             initial_prompt=prompt or None,
+            hotwords="rando randonnée",
             # latence bornée en live : pas de ré-essais à température croissante, plafond de tokens
             temperature=0.0,
             max_new_tokens=min(440, int(min(dur, WHISPER_WINDOW_S) * TOKENS_PER_S) + 16),

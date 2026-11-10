@@ -339,11 +339,11 @@ def latest_panel() -> None:
 
 # --- colonne Frontend (mockup téléphone) ------------------------------------------
 
-CRITERES = {"satisfaction": "Satisfaction", "affluence": "Affluence", "provenance": "Provenance"}
+CRITERES = {"satisfaction": "Satisfaction", "affluence": "Affluence\nressentie", "provenance": "Provenance"}
 CRIT_LABEL = {
-    "satisfaction": "Satisfaction globale moyenne",
-    "affluence": "Affluence ressentie moyenne",
-    "provenance": "Part hors département",
+    "satisfaction": "Satisfaction globale",
+    "affluence": "Affluence ressentie",
+    "provenance": "Proportion de touristes",
 }
 
 
@@ -367,9 +367,9 @@ def color_for(crit: str, v: float) -> str:
 def legend_html(crit: str) -> str:
     stops = ", ".join(color_for(crit, v) for v in (0, 25, 50, 75, 100))
     ends = {
-        "satisfaction": ("0 · insatisfait", "100 · satisfait"),
-        "affluence": ("0 · personne", "100 · trop de monde"),
-        "provenance": ("0 % hors dépt.", "100 % hors dépt."),
+        "satisfaction": ("mécontent", "satisfait"),
+        "affluence": ("personne", "trop de monde"),
+        "provenance": ("excursionnistes / habitants", "touristes"),
     }[crit]
     return (
         f'<div class="legend-bar" style="background:linear-gradient(90deg,{stops})"></div>'

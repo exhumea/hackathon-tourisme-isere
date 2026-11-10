@@ -4,7 +4,7 @@
 # À recaler sur le parking (OpenStreetMap) et à vérifier : électricité, commune
 # de rattachement (Écouges : Saint-Gervais / Rencurel ; Montfort : Crolles / Lumbin).
 # Un autre territoire = un autre fichier de ce format.
-departement: Isère
+departement: Isère, vers Grenoble (c'est-à-dire loin de Paris/Bordeaux/Marseille/Toulouse/Nice/Lille/Lyon/Nantes/Ouest/Nord/Sud)
 bornes:
   - id: bois_batie
     name: Bois de la Bâtie
