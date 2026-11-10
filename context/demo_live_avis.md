@@ -225,12 +225,14 @@ CREATE TABLE control (                  -- commandes UI → worker
 Conteneur Streamlit à clé (`st.container(key="phone")`), mis en forme en CSS (classe
 `.st-key-phone`) comme un cadre de téléphone d'environ 390 px.
 
-1. **Carte (pydeck)** : un point par borne.
-   - **Taille** = fréquentation quantitative de la demi-journée (éco-compteur, §6, badge « simulé »).
+1. **Carte 2D (Folium, via `streamlit-folium`)** : fond OpenStreetMap, un `CircleMarker`
+   par borne. Pas de 3D. Rendu avec `st_folium(..., returned_objects=[])` pour que la carte
+   ne relance pas le script à chaque interaction.
+   - **Taille** (rayon) = fréquentation quantitative de la demi-journée (éco-compteur, §6, badge « simulé »).
    - **Couleur** = score du critère choisi, sur les avis non-NULL de la fenêtre :
      satisfaction globale moyenne, affluence ressentie moyenne, ou part de visiteurs
      hors département (vs. dans le département). Borne sans avis → gris.
-   - Clic / survol : nombre d'avis, valeur du critère, fréquentation et sa source.
+   - Tooltip au survol / popup au clic : nombre d'avis, valeur du critère, fréquentation et sa source.
 2. **Sélecteur de critère** (satisfaction / affluence / provenance), avec légende de couleur.
 3. **Fenêtre** : demi-journée en cours, live (défaut). Stretch 2 : ◀ / ▶ et badge
    « Historique ». Stretch 3 : « Tout le passé ».
@@ -305,4 +307,4 @@ demo/
 Lancement : `python demo/worker.py` et `streamlit run demo/app.py`
 (`DEMO_PREP=1 streamlit run demo/app.py` pour la préparation).
 Dépendances : `faster-whisper`, `sounddevice`, `numpy`, `pandas`, `openpyxl`, `pyyaml`,
-`streamlit`, `pydeck`, `httpx`.
+`streamlit`, `folium`, `streamlit-folium`, `httpx`.
