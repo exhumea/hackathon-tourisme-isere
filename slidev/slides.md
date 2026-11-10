@@ -35,38 +35,40 @@ seulement compter les visiteurs, et commencer à les écouter. »
 
 <div class="kicker">01 · Contexte</div>
 
-# 1. Contexte — le visiteur, angle mort des flux
+# 1. Contexte
 
-TODO: insérer / remplacer par travail LR et V
+<div class="text-base opacity-70 -mt-2">Surtourisme en Isère : perception ou réalité ?</div>
 
-<div class="grid grid-cols-2 gap-12 pt-6">
+<div class="text-xs font-bold uppercase tracking-wider opacity-60 pt-4">Besoins</div>
 
-<div>
+<div class="grid grid-cols-2 gap-4 text-sm">
 
-> « On vient de Lyon pour la rando.  
-> C'était super, mais le parking était plein.  
-> On reviendra, plutôt en semaine. »
+<div class="card" style="padding: 10px 16px;">
 
-</div>
-
-<div class="text-xl leading-relaxed">
-
-<div>On <strong>compte</strong> les flux</div>
-<div v-click>On <strong>n'écoute</strong> pas les visiteurs</div>
-<div v-click><strong>Qui ? Pourquoi ? Satisfait ?</strong></div>
+**Acteurs locaux** : savoir s'il y a vraiment sur-fréquentation et **qui** visite les sites
 
 </div>
 
+<div class="card" style="padding: 10px 16px;">
+
+**Usagers** : organiser sa sortie au mieux
+
 </div>
 
-<div class="stat-row pt-10">
-  <div class="stat"><strong>16,7 M</strong><span>nuitées 2024</span></div>
-  <div class="stat"><strong>24 h</strong><span>enquête terrain</span></div>
-  <div class="stat"><strong>5</strong><span>bornes ENS</span></div>
 </div>
 
-<div class="card mt-6 text-center text-sm">
-<strong>Maillage territorial</strong> — contenu à venir.
+<div class="pt-4" style="display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: center;">
+
+<img src="/images/schema_gestion_flux.png" alt="Gestion des flux : données quantitatives vs qualitatives, constats" class="rounded-xl shadow-lg" style="width: 100%; height: auto; max-height: 40vh; object-fit: contain; background: #fff;" />
+
+<div style="padding: 18px 22px; border-radius: 12px; background: #eef8d8; border-left: 6px solid #1a9850;">
+
+<div class="text-xs font-bold uppercase tracking-wider opacity-60">Proposition de valeur</div>
+
+<div class="text-xl pt-2">Créer la donnée qualitative manquante <strong>en temps réel</strong> et <strong>à moindre coût</strong></div>
+
+</div>
+
 </div>
 
 <!--
@@ -96,36 +98,50 @@ L'open mic :
 -->
 
 ---
-layout: two-cols
----
 
 <div class="kicker">02 · Concept</div>
 
-# 2. Le concept — l'objet, l'app, le déploiement
+# Le concept
 
-TODO: insérer un visuel de borne
+<div class="grid grid-cols-2 gap-10 pt-2 items-start">
+
+<div>
 
 ### L'objet — une borne qui écoute
 
-> « Raconte-moi d'où tu viens…  
-> t'es de la région ?  
-> Elle t'a plu la rando ? »
+<img src="/images/borne_v2_gamme_customisable.jpg" alt="Gamme de bornes personnalisables par site" class="rounded-lg shadow my-3" style="max-height: 22vh; width: auto; max-width: 100%" />
 
-<div class="pt-4 text-sm opacity-70">
 Un bouton · une conversation · aucun compte
+
+**Déploiement** : phase initiale sur une zone restreinte de POI
+
 </div>
 
-::right::
+<div>
 
-### Le livre d'or numérique
+### Un livre d'or audio
 
-`satisfaction 0–100` · `affluence ressentie` · `provenance`  
-`transport` · `profil` · `langue` · `borne` · `demi-journée`
+<table class="text-sm" style="width: 100%; border-collapse: collapse;">
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Satisfaction</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #d73027, #fc8d59, #fee08b, #91cf60, #1a9850);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>0 · insatisfait</span><span>100 · satisfait</span></div></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Affluence ressentie</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #2a78d6, #f0efec, #e34948);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>0 · personne</span><span>100 · trop de monde</span></div></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Provenance</td><td style="padding: 4px 8px;"><div style="height: 8px; border-radius: 4px; background: linear-gradient(90deg, #fde725, #5ec962, #21918c, #3b528b, #440154);"></div><div style="display: flex; justify-content: space-between; font-size: 0.7rem; opacity: 0.7;"><span>département</span><span>hors département</span></div></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Transport</td><td style="padding: 4px 8px;">voiture · transports en commun · vélo</td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 4px 8px; font-weight: 600;">Profil</td><td style="padding: 4px 8px;">seul · couple · famille · groupe d'amis</td></tr>
+</table>
 
-### L'app — un prolongement
 
-Mockup téléphone (POC) → module **Isère Outdoor**  
-Pilote 5 sites ENS → département → **open source**
+<div class="pt-8 text-lg font-semibold" style="color: #2d6a55;">Une app pour aller plus loin</div>
+
+<div class="pt-2 text-sm">
+
+**App intégrée** : module d'une app existante, ex. **Isère Outdoor**  
+**App dédiée** : application ludique façon Space Invaders
+
+</div>
+
+</div>
+
+</div>
 
 <!--
 NOTES ORALES — 2. Le concept (1 min 30)
@@ -165,26 +181,14 @@ L'app comme prolongement :
 
 <div class="kicker">03 · Démo</div>
 
-# 3. La démo
+# Demo time
 
-TODO: insérer un lien vers la démo locale
-
-<div class="pipeline pt-6">
-  <span>Parler</span><i>→</i><span>Transcrire</span><i>→</i><span>Classifier</span><i>→</i><span>Afficher</span>
-</div>
-
-<div class="card pt-8 mt-10 text-center">
-
-### Démo live — deux colonnes
-
-**Backend** : push-to-talk, transcription live, 10 derniers avis  
-**Frontend** : mockup téléphone, carte des 5 bornes ENS  
-Taille = éco-compteur · couleur = critère choisi
-
-</div>
-
-<div class="pt-8 text-sm opacity-60 text-center">
-faster-whisper CPU · Jev via OpenRouter · SQLite WAL · Streamlit
+<div class="relative mx-auto" style="height: 58vh; aspect-ratio: 1376 / 768; max-width: 100%">
+  <img src="/images/borne_v2_detail_locale.jpg" alt="Borne v2 — détail" class="w-full h-full object-cover rounded-lg shadow" />
+  <a href="http://localhost:8501" target="_blank" rel="noopener" title="Ouvrir la démo live (localhost:8501)"
+     style="position: absolute; left: 56.4%; top: 77.7%; transform: translate(-50%, -50%); width: 5rem; height: 5rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.1; font-weight: 700; font-size: 0.85rem; color: #fff; background: rgba(30, 86, 56, 0.85); border: 3px solid #7CFC8A; box-shadow: 0 0 0 8px rgba(124, 252, 138, 0.25); text-decoration: none;">
+    ▶<br>Démo<br>live
+  </a>
 </div>
 
 <!--
@@ -213,34 +217,46 @@ Sous le capot :
 -->
 
 ---
-layout: two-cols
----
 
 <div class="kicker">04 · Modèle économique</div>
 
-# 4. Analyse risques et opportunités / Modèle économique
+# 4. Risques et modèle économique
 
-TODO: insérer / remplacer par travail de ES
+<div class="grid grid-cols-2 gap-10 pt-4 items-start">
 
-### L'enquête terrain
+<div>
 
-- 2 jours d'enquêteur
-- Déplacement + traitement
-- **≈ 24 h de travail**
-- Ponctuelle, échantillon limité
+### Risques
 
-::right::
+- Raccordement électricité / réseau en milieu naturel
+- Dégradations, vandalisme
+- Accessibilité à certains handicaps
 
-### La borne
+<div class="pt-6"></div>
 
-- **CAPEX** : boîtier, micro, bouton, batterie
-- **OPEX** : STT + classification par avis
-- **24 h/24**, 7 j/7
-- Coût marginal : **quelques centimes / avis**
+### Conditions de réussite
 
-<div class="pt-6 text-sm opacity-70">
-Robustesse : dégradation, batterie, connectivité,<br>
-mode hors-ligne, supervision.
+- Acceptabilité au niveau local
+- Appropriation par les usagers
+- Fiabilité et robustesse
+- Exploitation : qui fait quoi
+- Conformité, éthique, intégration paysagère
+
+</div>
+
+<div>
+
+### Modèle économique B2G2G
+
+<table class="text-sm" style="width: 100%; border-collapse: collapse;">
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 6px 8px; font-weight: 600;">Licence territoriale<br><span style="font-weight: 400; opacity: 0.7;">plateforme + observatoire</span></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 6px 8px; font-weight: 600;">QR code + appli<br><span style="font-weight: 400; opacity: 0.7;">collecte, tableau de bord</span></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 6px 8px; font-weight: 600;">Borne intérieure<br><span style="font-weight: 400; opacity: 0.7;">location + maintenance</span></td></tr>
+  <tr style="border-bottom: 1px solid #d6dde3;"><td style="padding: 6px 8px; font-weight: 600;">Borne extérieure<br><span style="font-weight: 400; opacity: 0.7;">autonomie + maintenance</span></td></tr>
+</table>
+
+</div>
+
 </div>
 
 <!--
@@ -274,62 +290,10 @@ Robustesse :
 
 # 5. Réutilisation des données
 
-TODO: insérer maquettages
+<div class="text-xl opacity-70 pt-1">Du ressenti à la visitabilité : mieux orienter les flux</div>
 
-<div class="grid grid-cols-3 gap-5 pt-6 text-sm">
-
-<div class="card">
-
-### Tableau de bord
-
-Satisfaction 0–100,<br>affluence ressentie
-
-</div>
-
-<div class="card">
-
-### Carte de saturation
-
-Taille = éco-compteurs,<br>couleur = critère choisi
-
-</div>
-
-<div class="card">
-
-### Profils visiteurs
-
-Profil, transport,<br>provenance
-
-</div>
-
-<div class="card">
-
-### Lien transports
-
-Part sans voiture,<br>besoin de navettes
-
-</div>
-
-<div class="card">
-
-### Alertes précoces
-
-Affluence anormale,<br>signalétique défaillante
-
-</div>
-
-<div class="card">
-
-### API ouverte
-
-Données agrégées<br>pour les partenaires
-
-</div>
-
-</div>
-
-<div class="pt-8 text-center text-sm opacity-60">
-Pour les gestionnaires de sites, les offices de tourisme, Isère Attractivité, Loopi…
+<div class="pt-8 flex justify-center">
+  <img src="/images/conclusion_schema.png" alt="Indice de fréquentation vécue, matrice de pondération et indice de visitabilité" class="rounded-xl shadow-lg" style="width: 100%; height: auto; max-height: 52vh; object-fit: contain; background: #fff;" />
 </div>
 
 <!--
