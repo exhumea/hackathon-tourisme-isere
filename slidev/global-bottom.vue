@@ -29,5 +29,5 @@
 </template>
 
 <script setup>
-const stages = ['Contexte', 'Concept', 'Démo', 'Économie', 'Données']
+const stages = ['Contexte', 'Concept', 'Données', 'Démo', 'Économie']
 </script>

@@ -63,6 +63,10 @@ seulement compter les visiteurs, et commencer à les écouter. »
   <div class="stat"><strong>5</strong><span>bornes ENS</span></div>
 </div>
 
+<div class="card mt-6 text-center text-sm">
+<strong>Maillage territorial</strong> — contenu à venir.
+</div>
+
 <!--
 NOTES ORALES — 1. Contexte (2 min)
 
@@ -155,112 +159,9 @@ L'app comme prolongement :
 
 ---
 
-<div class="kicker">03 · Démo</div>
+<div class="kicker">03 · Réutilisation des données</div>
 
-# 3. La démo
-
-<div class="pipeline pt-6">
-  <span>Parler</span><i>→</i><span>Transcrire</span><i>→</i><span>Classifier</span><i>→</i><span>Afficher</span>
-</div>
-
-<div class="card pt-8 mt-10 text-center">
-
-### Démo live — deux colonnes
-
-**Backend** : push-to-talk, transcription live, 10 derniers avis  
-**Frontend** : mockup téléphone, carte des 5 bornes ENS  
-Taille = éco-compteur · couleur = critère choisi
-
-</div>
-
-<div class="pt-8 text-sm opacity-60 text-center">
-faster-whisper CPU · Jev via OpenRouter · SQLite WAL · Streamlit
-</div>
-
-<!--
-NOTES ORALES — 3. La démo (1 min)
-
-Ce que vous allez voir :
-- On choisit une borne : Bois de la Bâtie, Col du Coq, Les Écouges, Peuil, Montfort.
-  Cinq sites ENS, chacun avec un éco-compteur de parking en référence.
-- On parle 20 secondes : d'où on vient, ce qu'on a fait, ce qu'on a pensé.
-- La transcription s'affiche en direct : le texte partiel en gris, le texte validé en noir.
-- Puis la classification arrive : satisfaction 0–100, affluence ressentie, provenance,
-  transport et profil — seulement si c'est explicite.
-- Arrêt automatique après 15 s de silence ; transcript vide : rien n'est enregistré,
-  aucun appel au modèle.
-- À droite, la carte : taille = fréquentation de l'éco-compteur (badge « simulé »),
-  couleur = critère choisi. Cinq bornes, une demi-journée en cours.
-
-Sous le capot :
-- Un worker local fait le STT (faster-whisper, CPU int8) et la VAD.
-- Un appel Jev classe la conversation en quelques secondes.
-- Le tout communique via SQLite en mode WAL ; le front est un Streamlit en deux colonnes.
-
-À noter :
-- L'audio n'est jamais conservé : seule la transcription remonte (voir annexe B).
-- Les avis de la démo sont ceux de l'équipe, pas ceux du public.
--->
-
----
-layout: two-cols
----
-
-<div class="kicker">04 · Modèle économique</div>
-
-# 4. Modèle économique
-
-### L'enquête terrain
-
-- 2 jours d'enquêteur
-- Déplacement + traitement
-- **≈ 24 h de travail**
-- Ponctuelle, échantillon limité
-
-::right::
-
-### La borne
-
-- **CAPEX** : boîtier, micro, bouton, batterie
-- **OPEX** : STT + classification par avis
-- **24 h/24**, 7 j/7
-- Coût marginal : **quelques centimes / avis**
-
-<div class="pt-6 text-sm opacity-70">
-Robustesse : dégradation, batterie, connectivité,<br>
-mode hors-ligne, supervision.
-</div>
-
-<!--
-NOTES ORALES — 4. Modèle économique (1 min 30)
-
-Le coût d'une enquête terrain :
-- Aujourd'hui, une enquête de satisfaction, c'est environ 24 heures de travail :
-  deux jours d'enquêteur, le déplacement, puis une journée de traitement.
-- C'est ponctuel, ça couvre un échantillon limité, et ça introduit un biais de sélection :
-  on interroge ceux qui acceptent de s'arrêter.
-
-Le coût d'une borne :
-- CAPEX : un boîtier renforcé, un micro, un bouton, une batterie, éventuellement
-  un petit panneau solaire. Des composants standard, réparables.
-- OPEX : le traitement. Le STT et la classification coûtent quelques centimes par avis.
-- La borne tourne 24 h/24, 7 j/7, et produit des données comparables dans le temps.
-
-Robustesse :
-- Risque de dégradation : vandalisme, intempéries → boîtier renforcé, pièces standard.
-- Batterie : le froid et l'autonomie sont les points durs → dimensionnement, solaire,
-  remplacement simple.
-- Connectivité : zones blanches en montagne → mode hors-ligne avec stockage local
-  et synchronisation différée.
-- Supervision : si une borne devient silencieuse, on est alerté.
-- Principe : la borne reste un capteur passif ; toute la complexité est côté serveur.
--->
-
----
-
-<div class="kicker">05 · Réutilisation des données</div>
-
-# 5. Réutilisation des données
+# 3. Réutilisation des données
 
 <div class="grid grid-cols-3 gap-5 pt-6 text-sm">
 
@@ -319,7 +220,7 @@ Pour les gestionnaires de sites, les offices de tourisme, Isère Attractivité, 
 </div>
 
 <!--
-NOTES ORALES — 5. Réutilisation des données (2 min)
+NOTES ORALES — 3. Réutilisation des données (2 min)
 
 Ce que l'on peut faire avec ces avis, en 2 minutes :
 
@@ -344,6 +245,109 @@ Ce que l'on peut faire avec ces avis, en 2 minutes :
 
 Le message : ces données ne servent pas qu'à un rapport. Elles alimentent des outils
 de pilotage au quotidien.
+-->
+
+---
+
+<div class="kicker">04 · Démo</div>
+
+# 4. La démo
+
+<div class="pipeline pt-6">
+  <span>Parler</span><i>→</i><span>Transcrire</span><i>→</i><span>Classifier</span><i>→</i><span>Afficher</span>
+</div>
+
+<div class="card pt-8 mt-10 text-center">
+
+### Démo live — deux colonnes
+
+**Backend** : push-to-talk, transcription live, 10 derniers avis  
+**Frontend** : mockup téléphone, carte des 5 bornes ENS  
+Taille = éco-compteur · couleur = critère choisi
+
+</div>
+
+<div class="pt-8 text-sm opacity-60 text-center">
+faster-whisper CPU · Jev via OpenRouter · SQLite WAL · Streamlit
+</div>
+
+<!--
+NOTES ORALES — 4. La démo (1 min)
+
+Ce que vous allez voir :
+- On choisit une borne : Bois de la Bâtie, Col du Coq, Les Écouges, Peuil, Montfort.
+  Cinq sites ENS, chacun avec un éco-compteur de parking en référence.
+- On parle 20 secondes : d'où on vient, ce qu'on a fait, ce qu'on a pensé.
+- La transcription s'affiche en direct : le texte partiel en gris, le texte validé en noir.
+- Puis la classification arrive : satisfaction 0–100, affluence ressentie, provenance,
+  transport et profil — seulement si c'est explicite.
+- Arrêt automatique après 15 s de silence ; transcript vide : rien n'est enregistré,
+  aucun appel au modèle.
+- À droite, la carte : taille = fréquentation de l'éco-compteur (badge « simulé »),
+  couleur = critère choisi. Cinq bornes, une demi-journée en cours.
+
+Sous le capot :
+- Un worker local fait le STT (faster-whisper, CPU int8) et la VAD.
+- Un appel Jev classe la conversation en quelques secondes.
+- Le tout communique via SQLite en mode WAL ; le front est un Streamlit en deux colonnes.
+
+À noter :
+- L'audio n'est jamais conservé : seule la transcription remonte (voir annexe B).
+- Les avis de la démo sont ceux de l'équipe, pas ceux du public.
+-->
+
+---
+layout: two-cols
+---
+
+<div class="kicker">05 · Modèle économique</div>
+
+# 5. Modèle économique
+
+### L'enquête terrain
+
+- 2 jours d'enquêteur
+- Déplacement + traitement
+- **≈ 24 h de travail**
+- Ponctuelle, échantillon limité
+
+::right::
+
+### La borne
+
+- **CAPEX** : boîtier, micro, bouton, batterie
+- **OPEX** : STT + classification par avis
+- **24 h/24**, 7 j/7
+- Coût marginal : **quelques centimes / avis**
+
+<div class="pt-6 text-sm opacity-70">
+Robustesse : dégradation, batterie, connectivité,<br>
+mode hors-ligne, supervision.
+</div>
+
+<!--
+NOTES ORALES — 5. Modèle économique (1 min 30)
+
+Le coût d'une enquête terrain :
+- Aujourd'hui, une enquête de satisfaction, c'est environ 24 heures de travail :
+  deux jours d'enquêteur, le déplacement, puis une journée de traitement.
+- C'est ponctuel, ça couvre un échantillon limité, et ça introduit un biais de sélection :
+  on interroge ceux qui acceptent de s'arrêter.
+
+Le coût d'une borne :
+- CAPEX : un boîtier renforcé, un micro, un bouton, une batterie, éventuellement
+  un petit panneau solaire. Des composants standard, réparables.
+- OPEX : le traitement. Le STT et la classification coûtent quelques centimes par avis.
+- La borne tourne 24 h/24, 7 j/7, et produit des données comparables dans le temps.
+
+Robustesse :
+- Risque de dégradation : vandalisme, intempéries → boîtier renforcé, pièces standard.
+- Batterie : le froid et l'autonomie sont les points durs → dimensionnement, solaire,
+  remplacement simple.
+- Connectivité : zones blanches en montagne → mode hors-ligne avec stockage local
+  et synchronisation différée.
+- Supervision : si une borne devient silencieuse, on est alerté.
+- Principe : la borne reste un capteur passif ; toute la complexité est côté serveur.
 -->
 
 ---
