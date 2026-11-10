@@ -60,7 +60,7 @@ seulement compter les visiteurs, et commencer à les écouter. »
 <div class="stat-row pt-10">
   <div class="stat"><strong>16,7 M</strong><span>nuitées 2024</span></div>
   <div class="stat"><strong>24 h</strong><span>enquête terrain</span></div>
-  <div class="stat"><strong>5</strong><span>sites pilotes</span></div>
+  <div class="stat"><strong>5</strong><span>bornes ENS</span></div>
 </div>
 
 <!--
@@ -84,8 +84,8 @@ L'open mic :
 - Notre parti pris, c'est l'open mic : une conversation libre, pas un questionnaire.
 - Le visiteur appuie sur un bouton, parle 20 secondes à 2 minutes, appuie à nouveau.
 - On récupère un verbatim spontané, multilingue, sans friction, et on en extrait
-  des signaux structurés : profil, origine, groupe, mode de venue, affluence ressentie,
-  intention de revenir, note.
+  des signaux structurés : satisfaction 0–100, affluence ressentie, provenance,
+  transport et profil — ces deux derniers seulement s'ils sont explicites.
 - On passe donc d'une mesure de volume à une mesure d'expérience.
 -->
 
@@ -111,20 +111,20 @@ Un bouton · une conversation · aucun compte
 
 ### Le livre d'or numérique
 
-`origine` · `groupe` · `activités` · `logement`  
-`durée du séjour` · `temps sur site` · `mode de venue`  
-`affluence` · `parking` · `signalétique`
+`satisfaction 0–100` · `affluence ressentie` · `provenance`  
+`transport` · `profil` · `langue` · `borne` · `demi-journée`
 
 ### L'app — un prolongement
 
-Module **Isère Outdoor** · gamification **Catch'em'all**  
-Pilote 5 sites → département → **open source**
+Mockup téléphone (POC) → module **Isère Outdoor**  
+Pilote 5 sites ENS → département → **open source**
 
 <!--
 NOTES ORALES — 2. Le concept (1 min 30)
 
 Design de la borne :
-- Une borne physique, installée au départ d'une rando, à l'office de tourisme ou sur un parking.
+- Une borne physique posée sur un parking d'ENS, à côté d'un éco-compteur existant,
+  et si possible avec une alimentation électrique.
 - Un seul bouton : parler / arrêter. Pas d'écran, pas de clavier, pas de compte.
 - Le texte d'accroche est volontairement conversationnel :
   « Raconte-moi d'où tu viens, t'es de la région ? Elle t'a plu la rando ? »
@@ -132,19 +132,18 @@ Design de la borne :
 - Le design sera co-construit avec le territoire : figures locales, animaux, ouvrages d'art
   (voir annexe A).
 
-Les données du livre d'or :
-- Comment ils sont venus : voiture, transport en commun, vélo, à pied.
-- Quelles activités : rando, baignade, patrimoine, événement.
-- Où ils viennent : Isère, autre région, étranger.
-- Où ils logent : camping, hôtel, famille, résidence secondaire.
-- Combien ils sont : seul, couple, famille, amis, groupe organisé.
-- Combien de temps sur le site et durée du séjour.
-- Ce qui a coincé : signalétique, parking, affluence ressentie.
-- Et bien sûr : est-ce qu'ils reviendront, et pourquoi.
+Les données du livre d'or — 5 critères :
+- Satisfaction globale, 0 à 100.
+- Affluence ressentie : 0 = personne, 100 = « beaucoup trop de monde ».
+- Provenance : le visiteur habite dans le département ou en dehors.
+- Transport : voiture, transports en commun, vélo — seulement si explicite.
+- Profil : seul, couple, famille, groupe d'amis — seulement si explicite.
+- Une variable non mentionnée reste NULL : on ne déduit jamais (« no guess »).
 
 L'app comme prolongement :
 - On ne propose pas une énième app à installer. L'app prolonge la borne.
-- Deux scénarios : un module intégré à une app existante — Isère Outdoor est
+- Dans le POC, le front est un mockup téléphone dans Streamlit.
+- Ensuite : un module intégré à une app existante — Isère Outdoor est
   l'intégration naturelle ; ou une application dédiée, plus ludique.
 - Le moteur est le même : transcription vocale + classification. Seul le canal change.
 - Gamification inspirée de Catch'em'all ou Space Invaderz : badges par massif, site,
@@ -166,34 +165,41 @@ L'app comme prolongement :
 
 <div class="card pt-8 mt-10 text-center">
 
-### Placeholder
+### Démo live — deux colonnes
 
-Cette slide sera remplacée par le **PoC développé dans la branche dédiée**.
+**Backend** : push-to-talk, transcription live, 10 derniers avis  
+**Frontend** : mockup téléphone, carte des 5 bornes ENS  
+Taille = éco-compteur · couleur = critère choisi
 
 </div>
 
 <div class="pt-8 text-sm opacity-60 text-center">
-Worker STT local · classification Jev · SQLite · Streamlit
+faster-whisper CPU · Jev via OpenRouter · SQLite WAL · Streamlit
 </div>
 
 <!--
 NOTES ORALES — 3. La démo (1 min)
 
 Ce que vous allez voir :
-- On choisit une borne (Chamrousse, Col de Porte, Molière, Les 7 Laux, Bourg-d'Arud).
-- On parle 30 secondes : d'où on vient, ce qu'on a fait, ce qu'on a pensé.
+- On choisit une borne : Bois de la Bâtie, Col du Coq, Les Écouges, Peuil, Montfort.
+  Cinq sites ENS, chacun avec un éco-compteur de parking en référence.
+- On parle 20 secondes : d'où on vient, ce qu'on a fait, ce qu'on a pensé.
 - La transcription s'affiche en direct : le texte partiel en gris, le texte validé en noir.
-- Puis la classification arrive : note, profil, affluence, mode de venue.
-- On peut naviguer dans les demi-journées et voir les avis s'accumuler.
+- Puis la classification arrive : satisfaction 0–100, affluence ressentie, provenance,
+  transport et profil — seulement si c'est explicite.
+- Arrêt automatique après 15 s de silence ; transcript vide : rien n'est enregistré,
+  aucun appel au modèle.
+- À droite, la carte : taille = fréquentation de l'éco-compteur (badge « simulé »),
+  couleur = critère choisi. Cinq bornes, une demi-journée en cours.
 
 Sous le capot :
-- Un worker local fait le STT (faster-whisper, CPU) et la VAD.
+- Un worker local fait le STT (faster-whisper, CPU int8) et la VAD.
 - Un appel Jev classe la conversation en quelques secondes.
-- Le tout communique via SQLite ; le front est un Streamlit en deux colonnes.
+- Le tout communique via SQLite en mode WAL ; le front est un Streamlit en deux colonnes.
 
 À noter :
-- Cette slide est un placeholder : elle sera remplacée par le PoC de la branche dédiée.
 - L'audio n'est jamais conservé : seule la transcription remonte (voir annexe B).
+- Les avis de la démo sont ceux de l'équipe, pas ceux du public.
 -->
 
 ---
@@ -262,7 +268,7 @@ Robustesse :
 
 ### Tableau de bord
 
-Volume, note moyenne,<br>taux de retour
+Satisfaction 0–100,<br>affluence ressentie
 
 </div>
 
@@ -270,7 +276,7 @@ Volume, note moyenne,<br>taux de retour
 
 ### Carte de saturation
 
-Affluence ressentie<br>× éco-compteurs
+Taille = éco-compteurs,<br>couleur = critère choisi
 
 </div>
 
@@ -278,7 +284,7 @@ Affluence ressentie<br>× éco-compteurs
 
 ### Profils visiteurs
 
-Origine, groupe,<br>mode de venue
+Profil, transport,<br>provenance
 
 </div>
 
@@ -317,14 +323,14 @@ NOTES ORALES — 5. Réutilisation des données (2 min)
 
 Ce que l'on peut faire avec ces avis, en 2 minutes :
 
-1. Tableau de bord flux — volume d'avis par site et par demi-journée, note moyenne,
-   taux de retour. C'est l'outil de base du gestionnaire de site.
+1. Tableau de bord — satisfaction moyenne et affluence ressentie par site et par
+   demi-journée. C'est l'outil de base du gestionnaire de site.
 
-2. Carte de saturation — on croise l'affluence ressentie avec les éco-compteurs et les
-   comptages parkings. On fait apparaître les zones à réorienter, pas seulement les
-   zones fréquentées.
+2. Carte de saturation — taille des points = fréquentation de l'éco-compteur (badge
+   « simulé »), couleur = score du critère. On fait apparaître les zones à réorienter,
+   pas seulement les zones fréquentées.
 
-3. Profils visiteurs — origine, groupe, mode de venue. Croisé avec Flux Vision, cela
+3. Profils visiteurs — profil, transport, provenance. Croisé avec Flux Vision, cela
    permet de cibler les campagnes et d'adapter l'offre.
 
 4. Lien transports — quelle part de visiteurs vient sans voiture, où manque-t-il une
@@ -412,7 +418,7 @@ layout: two-cols
 
 - La **transcription** (texte)
 - Borne, date, demi-journée
-- Classification (profil, note…)
+- Classification : satisfaction, affluence, provenance, transport, profil
 - Langue détectée
 
 ::right::
@@ -428,10 +434,13 @@ layout: two-cols
 NOTES ORALES — Annexe B (réponse aux questions)
 
 Le point clé : on ne fait remonter que la transcription.
-- L'audio est traité localement sur la borne, puis supprimé. Il n'est jamais stocké
-  ni transmis.
+- L'audio est traité puis supprimé : il n'est jamais écrit sur disque, ni transmis.
 - On ne demande ni nom, ni e-mail, ni téléphone. Les avis sont anonymes par construction.
 - La borne et la demi-journée suffisent à contextualiser, sans identifier la personne.
+- Minimisation : la provenance est binaire (département / hors département) ; le profil
+  est une inférence affichée en agrégat, jamais par personne.
+- La base de démo est gitignorée, chaque avis est supprimable, et le fichier est effacé
+  en fin de hackathon.
 
 Base légale et conformité :
 - Intérêt légitime ou mission de service public selon le porteur.
@@ -450,45 +459,48 @@ Base légale et conformité :
 
 ```mermaid
 flowchart LR
-    subgraph Borne["Borne (edge)"]
-        MIC[Micro] --> VAD[VAD silero]
-        VAD --> CHUNK[Chunks audio]
-    end
-
-    subgraph Serveur["Serveur (traitement lourd)"]
-        CHUNK --> STT[faster-whisper<br/>CPU int8]
+    subgraph Worker["worker.py (CPU)"]
+        MIC[Micro 16 kHz] --> VAD[VAD silero]
+        VAD --> STT[faster-whisper<br/>CPU int8]
         STT --> TXT[Transcription]
-        TXT --> JEV[Jev<br/>classification]
-        TXT --> DB[(SQLite WAL)]
-        JEV --> DB
+        TXT --> JEV[Jev<br/>OpenRouter]
     end
 
-    subgraph App["Application"]
-        DB --> API[API agrégats]
-        API --> DASH[Dashboard]
-        API --> MAP[Carte]
+    TXT --> DB[(SQLite<br/>WAL)]
+    JEV --> DB
+
+    subgraph App["app.py (Streamlit)"]
+        DB --> BACK[Backend<br/>transcription, avis]
+        DB --> FRONT[Frontend<br/>carte, critères]
     end
 ```
 
 <div class="pt-4 text-sm opacity-70">
-La borne reste un capteur simple. Toute la complexité est côté serveur.
+POC : un laptop = une borne simulée. En production, le worker part sur la borne.
 </div>
 
 <!--
 NOTES ORALES — Annexe C (réponse aux questions)
 
 Le flux technique :
-- Côté borne : micro, VAD (détection de voix), découpage en chunks audio.
-- Côté serveur : transcription faster-whisper sur CPU, puis classification Jev.
-- Stockage dans SQLite en mode WAL, puis exposition via une API d'agrégats.
-- Le dashboard et la carte consomment cette API.
+- `worker.py` : micro 16 kHz, VAD (détection de voix), transcription faster-whisper
+  sur CPU, puis appel Jev pour la classification.
+- `app.py` : Streamlit en deux colonnes — Backend (push-to-talk, transcription live,
+  derniers avis) et Frontend (mockup téléphone, carte des bornes, critères).
+- Les deux processus ne communiquent que par SQLite en mode WAL : une table `control`
+  pour les commandes, une table `live_state` pour le statut et le heartbeat.
 
-Pourquoi « traitement lourd » côté serveur :
-- La borne reste simple, peu coûteuse, réparable.
-- On peut changer de modèle STT ou de classifieur sans toucher aux bornes.
-- On centralise la supervision, les mises à jour et la sécurité.
+Pourquoi couper worker et app :
+- Streamlit relance le script à chaque interaction : un thread micro hébergé dedans
+  serait fragile.
+- Le journal d'état et la heartbeat (5 s) rendent une panne du worker visible à l'écran.
+- On peut changer de modèle STT ou de classifieur sans toucher au front.
 
-Le audio n'est pas stocké : il est traité puis supprimé, seule la transcription
+En production :
+- Le worker part sur la borne, l'app reste côté serveur.
+- Même schéma de base, et un autre département = un autre `bornes.yaml`.
+
+L'audio n'est pas stocké : il est traité en mémoire puis libéré, seule la transcription
 est conservée.
 -->
 
