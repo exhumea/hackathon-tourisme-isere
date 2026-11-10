@@ -134,7 +134,7 @@ Un bouton · une conversation · aucun compte
 
 <div class="pt-2 text-sm">
 
-**App intégrée** : module d'une app existante, ex. **Isère Outdoor**  
+**App intégrée** : module d'une app existante, ex. **Isère Outdoor**
 **App dédiée** : application ludique façon Space Invaders
 
 </div>
