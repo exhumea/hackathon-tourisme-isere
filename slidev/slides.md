@@ -37,6 +37,8 @@ seulement compter les visiteurs, et commencer à les écouter. »
 
 # 1. Contexte — le visiteur, angle mort des flux
 
+TODO: insérer / remplacer par travail LR et V
+
 <div class="grid grid-cols-2 gap-12 pt-6">
 
 <div>
@@ -101,6 +103,8 @@ layout: two-cols
 
 # 2. Le concept — l'objet, l'app, le déploiement
 
+TODO: insérer un visuel de borne
+
 ### L'objet — une borne qui écoute
 
 > « Raconte-moi d'où tu viens…  
@@ -163,6 +167,8 @@ L'app comme prolongement :
 
 # 3. La démo
 
+TODO: insérer un lien vers la démo locale
+
 <div class="pipeline pt-6">
   <span>Parler</span><i>→</i><span>Transcrire</span><i>→</i><span>Classifier</span><i>→</i><span>Afficher</span>
 </div>
@@ -212,7 +218,9 @@ layout: two-cols
 
 <div class="kicker">04 · Modèle économique</div>
 
-# 4. Modèle économique
+# 4. Analyse risques et opportunités / Modèle économique
+
+TODO: insérer / remplacer par travail de ES
 
 ### L'enquête terrain
 
@@ -265,6 +273,8 @@ Robustesse :
 <div class="kicker">05 · Réutilisation des données</div>
 
 # 5. Réutilisation des données
+
+TODO: insérer maquettages
 
 <div class="grid grid-cols-3 gap-5 pt-6 text-sm">
 
