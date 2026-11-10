@@ -70,7 +70,8 @@ select = [
 
 [tool.mypy]
 strict = true
-exclude = ["^sbx-kits-contrib/", "^datasets/sources_r/", "^data/"]
+# demo/ est un projet uv autonome (ses dépendances ne sont pas dans cet environnement).
+exclude = ["^sbx-kits-contrib/", "^datasets/sources_r/", "^data/", "^demo/"]
 warn_unused_ignores = true
 warn_unused_configs = true
 
