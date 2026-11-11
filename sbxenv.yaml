@@ -3,11 +3,11 @@ schemaVersion: '1'
 agent: opencode
 
 args:
-  # Github auth/signing
+  # GitHub auth/signing
   ghUser:
     required: true
     pattern: '^[A-Za-z0-9-]*$'
-    description: 'Github user account (authenticated via gh, empty is active account)'
+    description: 'GitHub user account (authenticated via gh, picks active account if empty)'
   gitName:
     required: true
     description: 'User name for Git commits'
@@ -19,12 +19,15 @@ args:
     required: true
     description: 'Host port for OpenCode service'
   defaultModel:
-    default: 'lbrouter/deepseek-v4.1-flash:free'
+    default: 'opencode/deepseek-v4.1-flash-free'
     description: 'Default model for OpenCode CLI'
   opencodeApiKey:
     default: ''
-    description: 'API key for OpenCode Console'
+    description: 'API key for OpenCode Console (optional)'
   # Paths (relative to this file)
+  clone:
+    default: false
+    description: 'Whether to clone or mount workspace'
   kitsDir:
     default: './sbx-kits-contrib'
     description: 'Directory for SBX kits'
@@ -62,8 +65,8 @@ env:
 
 workspace:
   path: ${{ env.projectDir }}
+  clone: ${{ env.args.clone }}
   # target: /home/agent/workspace # not available yet, cf. <https://github.com/docker/sandbox-kit-spec/issues/215>
-  # clone: true
 
 additionalWorkspaces:
   - path: ${{ env.args.dataDir }}

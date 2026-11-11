@@ -21,13 +21,15 @@ privées sont dans [`AGENTS.md`](AGENTS.md). Les données du hackathon sont dans
 > or any config file or script involved in this setup.
 > Only a human operator provisions sandboxes and authenticates accounts.
 
+Before starting you need to `sudo apt install ssh-agent-filter`
+
 1. [Install `sbx`](https://docs.docker.com/ai/sandboxes/install/) and run `sbx login`
 
 2. Install some skills with [`npx skills`](https://www.skills.sh/) and import them with `sbx skills import`
 
 3. Store your secrets (API keys for model providers) with
-[`sbx secret set[-custom]`](https://docs.docker.com/ai/sandboxes/configuration/credentials/).
-Some nice providers are:
+[`sbx secret import` and/or `sbx secret set[-custom]`](https://docs.docker.com/ai/sandboxes/configuration/credentials/).
+Some nice token providers are:
    - <https://lbrouter.com/#ref=GTXQQRLK> (nice free tier, per day)
    - <https://opencode.ai/console/login> (nice free tier, per day)
    - <https://tokenharbor.ai> (good free tier, 7d rolling)
@@ -47,6 +49,7 @@ and [signing](https://docs.github.com/authentication/managing-commit-signature-v
 
 6. Launch new OpenCode sandbox(es) with `./new_opencode_sandbox.sh`
 
-7. Pair your sandbox with your OpenCode {[desktop](https://opencode.ai/desktop), [mobile](https://getopencode.app/), web} apps **(beware pairing link is valid only once, run `./pair_opencode_sandbox.sh` to pair to another app)**
+7. Pair your sandbox with your OpenCode {[desktop](https://opencode.ai/desktop), [mobile](https://getopencode.app/), web} apps
+**(beware pairing link is valid only once, run `./pair_opencode_sandbox.sh` to pair to another app)**
 
 8. Start new _sessions_ in your OpenCode app **(beware to change the working directory before starting a _session_)**
