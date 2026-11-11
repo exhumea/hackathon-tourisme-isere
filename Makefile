@@ -10,7 +10,7 @@ GIT_FILES := git ls-files -z --cached --others --exclude-standard
 # Ne garde que les fichiers réellement présents (un fichier supprimé mais encore
 # suivi ne doit pas être passé aux linters).
 YAML_FILES := $(shell $(GIT_FILES) '*.yaml' '*.yml' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
-MARKDOWN_FILES := $(shell $(GIT_FILES) '*.md' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
+MARKDOWN_FILES := $(shell $(GIT_FILES) '*.md' ':!slidev/' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
 SHELL_FILES := $(shell $(GIT_FILES) '*.sh' | xargs -0 sh -c 'for f do [ -f "$$f" ] && printf "%s\n" "$$f"; done' sh)
 
 # diff-cover : branche de référence et seuil de couverture des lignes modifiées.

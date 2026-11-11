@@ -4,7 +4,6 @@ exclude: |
   (?x)^(
     vendor/|
     generated/|
-    sbxenv\.yaml|
     .*\.min\.js$|
     .*\.(lock|db)$|
     \..*cache/|
@@ -44,6 +43,7 @@ repos:
     hooks:
       - id: mdlint
         args: [--config, .mdlint.toml]
+        exclude: ^slidev/|\..*cache/
 
   - repo: local
     hooks:
